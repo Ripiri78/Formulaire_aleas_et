@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Formulaire de saisie des aléas</title>
+  
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  
+      <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #e9efff;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --warning: #f72585;
+      --light-gray: #f8f9fa;
+      --text-dark: #2b2d42;
+      --text-light: #8d99ae;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      --transition: all 0.3s ease;
+      --border-radius: 12px;
+      --info: #3498db;
+      --danger: #e74c3c;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f5f7ff;
+      color: var(--text-dark);
+      line-height: 1.6;
+      padding: 20px;
+    }
+    
+    .card {
+      border: none;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    
+    .card-header {
+      background-color: white;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      padding: 16px 20px;
+      font-weight: 600;
+    }
+    
+    .card-body {
+      padding: 20px;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--secondary);
+      border-color: var(--secondary);
+    }
+    
+    .btn-outline-primary {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .btn-outline-primary:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    
+    .alert {
+      border-radius: var(--border-radius);
+    }
+    
+    .loader {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 200px;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(67, 97, 238, 0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    
+    .section-title {
+      position: relative;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+    }
+    
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 50px;
+      height: 3px;
+      background-color: var(--primary);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .card {
+        margin-bottom: 15px;
+      }
+    }
+    
+    /* Custom style for required fields */
+    .required-field::after {
+      content: '*';
+      color: var(--warning);
+      margin-left: 4px;
+    }
+    
+    /* Animation pour message de succès */
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .success-message {
+      animation: fadeInDown 0.5s ease forwards;
+    }
+    
+    /* Style pour l'icône de succès */
+    .success-icon {
+      font-size: 1.2em;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    /* Animation de pulsation pour les messages de succès */
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(76, 201, 240, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(76, 201, 240, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(76, 201, 240, 0); }
+    }
+    
+    .alert-success {
+      animation: pulse 2s infinite;
+      border-left: 4px solid var(--success);
+    }
+    
+    /* Style pour les notifications toast */
+    .toast {
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      opacity: 1 !important;
+      border: none;
+      border-radius: var(--border-radius);
+      max-width: 350px;
+      min-width: 250px;
+    }
+    
+    /* Animations pour les toasts */
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    .toast.show {
+      animation: slideIn 0.3s ease forwards;
+    }
+    
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+      
+      .card, .card-header {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+      }
+      
+      .card-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .form-control, .form-select {
+        background-color: #2d2d2d;
+        border-color: #444;
+        color: #e0e0e0;
+      }
+      
+      .form-control:focus, .form-select:focus {
+        background-color: #2d2d2d;
+        color: #e0e0e0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container py-4">
+    <!-- En-tête -->
+    <div class="d-flex align-items-center mb-4">
+      <i class="fas fa-clipboard-list fs-2 me-3 text-primary"></i>
+      <h1 class="mb-0">Formulaire de saisie des aléas</h1>
+    </div>
+    
+    <!-- Espace réservé pour les messages de statut - Hauteur fixe pour éviter les sauts de page -->
+    <div style="min-height: 60px;">
+      <!-- Message de statut (masqué par défaut) -->
+      <div id="status-message" class="alert alert-success mb-4" style="display: none;"></div>
+      
+      <!-- Message de confirmation (masqué par défaut) -->
+      <div id="success-confirmation" class="alert alert-success d-none shadow-lg border-0">
+        <div class="d-flex flex-column">
+          <div class="d-flex align-items-center mb-2">
+            <i class="fas fa-check-circle success-icon text-success fs-3 me-3"></i>
+            <h4 class="mb-0">Enregistrement réussi!</h4>
+          </div>
+          <span id="success-message">Aléa enregistré avec succès!</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Formulaire -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-file-alt me-2"></i>Nouvel aléa</span>
+        <span class="badge bg-primary" id="date-jour"></span>
+      </div>
+      <div class="card-body">
+        <!-- Loader (masqué par défaut) -->
+        <div id="loader" class="loader" style="display: none;">
+          <div class="spinner"></div>
+          <p class="text-muted">Traitement en cours...</p>
+        </div>
+        
+        <!-- Formulaire principal -->
+        <form id="alea-form">
+          <div class="row">
+            <!-- SA (avec auto-complétion) -->
+            <div class="col-md-4 mb-3">
+              <label for="sa" class="form-label required-field">Numéro SA</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                <input type="text" class="form-control" id="sa" name="sa" required 
+                      placeholder="Entrez votre numéro SA">
+                <button class="btn btn-outline-primary" type="button" id="btn-search-sa">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+              <div class="form-text text-muted">Saisissez votre numéro SA pour compléter automatiquement vos informations.</div>
+            </div>
+            
+            <!-- Opérateur (auto-rempli) -->
+            <div class="col-md-4 mb-3">
+              <label for="operateur" class="form-label">Nom opérateur</label>
+              <input type="text" class="form-control" id="operateur" name="operateur" readonly>
+            </div>
+            
+            <!-- Équipe (auto-remplie) -->
+            <div class="col-md-4 mb-3">
+              <label for="equipe" class="form-label">Équipe</label>
+              <input type="text" class="form-control" id="equipe" name="equipe" readonly>
+            </div>
+          </div>
+          
+          <div class="row">
+            <!-- Poste (liste déroulante au lieu de la datalist) -->
+            <div class="col-md-6 mb-3">
+              <label for="poste" class="form-label required-field">Poste</label>
+              <select class="form-select" id="poste" name="poste" required>
+                <option value="" selected disabled>Sélectionnez un poste</option>
+                <!-- Options ajoutées dynamiquement -->
+              </select>
+            </div>
+            
+            <!-- Date -->
+            <div class="col-md-6 mb-3">
+              <label for="date" class="form-label required-field">Date</label>
+              <input type="date" class="form-control" id="date" name="date" required>
+            </div>
+          </div>
+          
+          <div class="row">
+            <!-- Type d'aléa -->
+            <div class="col-md-6 mb-3">
+  <label for="type-alea" class="form-label required-field">Type d'aléa</label>
+  <select class="form-select" id="type-alea" name="typeAlea" required>
+    <option value="" selected disabled>Sélectionnez un type d'aléa</option>
+    <!-- Les options seront ajoutées dynamiquement -->
+  </select>
+</div>
+            
+            <!-- Durée de l'aléa -->
+            <div class="col-md-6 mb-3">
+              <label for="duree" class="form-label required-field">Durée de l'aléa (en heures)</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="duree" name="duree" required 
+                       min="0.1" max="24" step="0.1" placeholder="Ex: 2.5">
+                <span class="input-group-text">h</span>
+              </div>
+              <div class="form-text">Indiquez la durée en heures (exemple: 1.5 pour 1h30)</div>
+            </div>
+          </div>
+          
+          <!-- Commentaire -->
+          <div class="mb-3">
+            <label for="commentaire" class="form-label">Commentaire</label>
+            <textarea class="form-control" id="commentaire" name="commentaire" rows="3"
+                    placeholder="Informations complémentaires sur l'aléa..."></textarea>
+          </div>
+          
+          <!-- Boutons d'action -->
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-light" id="btn-reset">
+              <i class="fas fa-undo me-2"></i>Réinitialiser
+            </button>
+            <button type="submit" class="btn btn-primary" id="btn-submit">
+              <i class="fas fa-save me-2"></i>Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+  
+    
+    <!-- Légende -->
+    <div class="mt-2 text-muted small">
+      <p><i class="fas fa-info-circle me-1"></i> Les champs marqués d'un <span class="text-danger">*</span> sont obligatoires.</p>
+    </div>
+  </div>
+
+  <!-- Bootstrap JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Script principal -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Afficher la date du jour
+      const today = new Date();
+      const formattedDate = today.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      document.getElementById('date-jour').textContent = formattedDate;
+      
+      // Définir la date du jour par défaut dans le champ date
+      const inputDate = document.getElementById('date');
+      inputDate.value = formatDateForInput(today);
+      
+      // Initialiser les écouteurs d'événements
+      initEventListeners();
+      
+      // Charger les postes pour la liste déroulante
+      loadPostesList();
+      loadTypesAleas();
+      
+      // Test de connexion
+      testConnection();
+    });
+    
+    function initEventListeners() {
+      // Bouton de recherche par SA
+      document.getElementById('btn-search-sa').addEventListener('click', function() {
+        fetchOperateurInfo();
+      });
+      
+      // Recherche automatique quand l'utilisateur quitte le champ SA
+      document.getElementById('sa').addEventListener('blur', function() {
+        if (this.value.trim() !== '') {
+          fetchOperateurInfo();
+        }
+      });
+      
+      // Recherche en appuyant sur Entrée dans le champ SA
+      document.getElementById('sa').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault(); // Empêcher la soumission du formulaire
+          fetchOperateurInfo();
+        }
+      });
+      
+      // Recherche automatique après un court délai de frappe - délai plus court
+      let typingTimer;
+      document.getElementById('sa').addEventListener('input', function() {
+        clearTimeout(typingTimer);
+        if (this.value.trim().length >= 3) { // Commencer la recherche à partir de 3 caractères
+          // Animation de progression pour indiquer l'attente
+          const searchButton = document.getElementById('btn-search-sa');
+          searchButton.innerHTML = '<i class="fas fa-ellipsis-h"></i>';
+          
+          typingTimer = setTimeout(fetchOperateurInfo, 300); // 300ms de délai pour une recherche plus rapide
+        }
+      });
+      
+      // Soumission du formulaire
+      document.getElementById('alea-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitForm();
+      });
+      
+      // Bouton de réinitialisation
+      document.getElementById('btn-reset').addEventListener('click', function() {
+        resetForm();
+      });
+    }
+    
+    function testConnection() {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          console.log("Test de connexion réussi:", response);
+        })
+        .withFailureHandler(function(error) {
+          showStatusMessage("Erreur de connexion au serveur: " + error, "danger");
+        })
+        .testConnection();
+    }
+    
+    function fetchOperateurInfo() {
+      const sa = document.getElementById('sa').value.trim();
+      
+      if (!sa) {
+        showStatusMessage("Veuillez saisir un numéro SA", "warning");
+        return;
+      }
+      
+      // Indiquer visuellement que la recherche est en cours sans masquer tout le formulaire
+      const saInput = document.getElementById('sa');
+      const searchButton = document.getElementById('btn-search-sa');
+      
+      // Modification: indicateur plus discret dans le bouton uniquement
+      searchButton.disabled = true;
+      searchButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      
+      google.script.run
+        .withSuccessHandler(function(response) {
+          // Restaurer l'interface
+          searchButton.disabled = false;
+          searchButton.innerHTML = '<i class="fas fa-search"></i>';
+          
+          if (response.success) {
+            // Remplir les champs avec les données récupérées
+            document.getElementById('operateur').value = response.operateur;
+            document.getElementById('equipe').value = response.equipe;
+            
+            // Sélectionner le poste habituel s'il est disponible
+            if (response.poste) {
+              const posteSelect = document.getElementById('poste');
+              for (let i = 0; i < posteSelect.options.length; i++) {
+                if (posteSelect.options[i].value === response.poste) {
+                  posteSelect.selectedIndex = i;
+                  break;
+                }
+              }
+            }
+            
+            // Notification discrète au lieu d'un message qui fait bouger la page
+            showDiscreteNotification("Informations récupérées pour " + response.operateur, "info");
+            
+            // Mettre le focus sur le champ suivant
+            document.getElementById('poste').focus();
+          } else {
+            // Notification d'erreur discrète
+            showDiscreteNotification(response.message, "warning");
+            // Remettre le focus sur le champ SA
+            document.getElementById('sa').focus();
+          }
+        })
+        .withFailureHandler(function(error) {
+          // Restaurer l'interface
+          searchButton.disabled = false;
+          searchButton.innerHTML = '<i class="fas fa-search"></i>';
+          
+          showDiscreteNotification("Erreur: " + error, "danger");
+        })
+        .getOperateurInfoBySA(sa);
+    }
+    
+    function loadPostesList() {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            const posteSelect = document.getElementById('poste');
+            posteSelect.innerHTML = '<option value="" selected disabled>Sélectionnez un poste</option>';
+            
+            // Filtrer "RECU" de la liste et trier les postes
+            const filteredPostes = response.postes
+              .filter(poste => poste !== "RECU")
+              .sort();
+            
+            filteredPostes.forEach(function(poste) {
+              const option = document.createElement('option');
+              option.value = poste;
+              option.textContent = poste;
+              posteSelect.appendChild(option);
+            });
+          } else {
+            console.warn("Impossible de charger la liste des postes:", response.message);
+            showStatusMessage("Impossible de charger la liste des postes. " + response.message, "warning");
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error("Erreur lors du chargement des postes:", error);
+          showStatusMessage("Erreur lors du chargement des postes: " + error, "danger");
+        })
+        .getListePostes();
+    }
+    
+    function submitForm() {
+      // Vérifier que les champs obligatoires sont remplis
+      const requiredFields = ['sa', 'poste', 'date', 'type-alea', 'duree'];
+      let isValid = true;
+      
+      requiredFields.forEach(function(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (!field.value.trim()) {
+          field.classList.add('is-invalid');
+          isValid = false;
+        } else {
+          field.classList.remove('is-invalid');
+        }
+      });
+      
+      // Validation spécifique pour la durée
+      const dureeField = document.getElementById('duree');
+      const dureeValue = parseFloat(dureeField.value);
+      if (isNaN(dureeValue) || dureeValue <= 0 || dureeValue > 24) {
+        dureeField.classList.add('is-invalid');
+        isValid = false;
+        showStatusMessage("La durée doit être un nombre positif entre 0.1 et 24 heures", "warning");
+        return;
+      }
+      
+      if (!isValid) {
+        showStatusMessage("Veuillez remplir tous les champs obligatoires", "warning");
+        return;
+      }
+      
+      // Vérifier que l'opérateur a bien été trouvé
+      if (!document.getElementById('operateur').value) {
+        showStatusMessage("Veuillez rechercher un opérateur valide avec le numéro SA", "warning");
+        return;
+      }
+      
+      // Collecter les données du formulaire
+      const aleaData = {
+        operateur: document.getElementById('operateur').value,
+        sa: document.getElementById('sa').value,
+        equipe: document.getElementById('equipe').value,
+        poste: document.getElementById('poste').value,
+        date: document.getElementById('date').value,
+        typeAlea: document.getElementById('type-alea').value,
+        commentaire: document.getElementById('commentaire').value,
+        duree: document.getElementById('duree').value
+      };
+      
+      // Afficher le loader
+      showLoader(true);
+      
+      // Envoyer les données au serveur
+      google.script.run
+        .withSuccessHandler(function(response) {
+          showLoader(false);
+          
+          if (response.success) {
+            // Afficher le message de confirmation amélioré
+            showSuccessConfirmation(aleaData);
+            
+            // Afficher une notification toast en plus
+            const toast = document.createElement('div');
+            toast.className = 'position-fixed bottom-0 end-0 p-3';
+            toast.style.zIndex = '5';
+            toast.innerHTML = `
+              <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header bg-success text-white">
+                  <i class="fas fa-check-circle me-2"></i>
+                  <strong class="me-auto">Succès</strong>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                  Aléa de type <strong>${aleaData.typeAlea}</strong> enregistré pour l'opérateur <strong>${aleaData.operateur}</strong>.
+                </div>
+              </div>
+            `;
+            document.body.appendChild(toast);
+            
+            // Supprimer le toast après 5 secondes
+            setTimeout(() => {
+              toast.remove();
+            }, 5000);
+            
+            resetForm(false); // Conserver certains champs
+          } else {
+            showStatusMessage(response.message, "danger");
+          }
+        })
+        .withFailureHandler(function(error) {
+          showLoader(false);
+          showStatusMessage("Erreur lors de l'enregistrement: " + error, "danger");
+        })
+        .saveAlea(aleaData);
+    }
+
+    function loadTypesAleas() {
+  google.script.run
+    .withSuccessHandler(function(response) {
+      if (response.success) {
+        const typeAleaSelect = document.getElementById('type-alea');
+        typeAleaSelect.innerHTML = '<option value="" selected disabled>Sélectionnez un type d\'aléa</option>';
+        
+        response.types.forEach(function(type) {
+          const option = document.createElement('option');
+          option.value = type;
+          option.textContent = type;
+          typeAleaSelect.appendChild(option);
+        });
+      } else {
+        console.warn("Impossible de charger la liste des types d'aléas:", response.message);
+        showDiscreteNotification("Impossible de charger la liste des types d'aléas. " + response.message, "warning");
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error("Erreur lors du chargement des types d'aléas:", error);
+      showDiscreteNotification("Erreur lors du chargement des types d'aléas: " + error, "warning");
+    })
+    .getTypesAleas();
+}
+    
+    function showSuccessConfirmation(aleaData) {
+      // Créer un message de confirmation détaillé
+      const successDiv = document.getElementById('success-confirmation');
+      const messageSpan = document.getElementById('success-message');
+      
+      // Formater la date pour l'affichage
+      const dateParts = aleaData.date.split('-');
+      const dateFormatted = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+      
+      // Message personnalisé avec les détails
+      messageSpan.innerHTML = `
+        <div class="card border-0 bg-light mt-2">
+          <div class="card-body p-3">
+            <div class="row">
+              <div class="col-md-6">
+                <p class="mb-1"><strong>Opérateur:</strong> ${aleaData.operateur}</p>
+                <p class="mb-1"><strong>Équipe:</strong> ${aleaData.equipe || 'Non spécifiée'}</p>
+                <p class="mb-1"><strong>Poste:</strong> ${aleaData.poste}</p>
+              </div>
+              <div class="col-md-6">
+                <p class="mb-1"><strong>Date:</strong> ${dateFormatted}</p>
+                <p class="mb-1"><strong>Type d'aléa:</strong> ${aleaData.typeAlea}</p>
+                <p class="mb-1"><strong>Durée:</strong> ${aleaData.duree}h</p>
+              </div>
+            </div>
+            ${aleaData.commentaire ? `<p class="mt-2 mb-0"><strong>Commentaire:</strong> ${aleaData.commentaire}</p>` : ''}
+          </div>
+        </div>
+        <div class="text-center mt-3">
+          <span class="badge bg-success p-2">Enregistrement réussi dans la feuille de calcul</span>
+        </div>
+      `;
+      
+      // Jouer un son de notification (optionnel)
+      try {
+        const audio = new Audio('https://cdn.jsdelivr.net/gh/rafaelp/rphook/lib/media/status.mp3');
+        audio.volume = 0.5;
+        audio.play();
+      } catch (e) {
+        console.log('Son de notification non disponible');
+      }
+      
+      // Afficher le message de confirmation sans faire défiler la page
+      successDiv.classList.remove('d-none');
+      successDiv.classList.add('success-message');
+      
+      // Ne pas faire défiler jusqu'au message automatiquement
+      // successDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Masquer après un délai
+      setTimeout(function() {
+        successDiv.classList.add('d-none');
+        successDiv.classList.remove('success-message');
+      }, 10000);
+    }
+    
+    function resetForm(complete = true) {
+      // Si réinitialisation complète, vider tous les champs
+      if (complete) {
+        document.getElementById('sa').value = '';
+        document.getElementById('operateur').value = '';
+        document.getElementById('equipe').value = '';
+      }
+      
+      // Toujours réinitialiser ces champs
+      document.getElementById('poste').selectedIndex = 0;
+      document.getElementById('type-alea').selectedIndex = 0;
+      document.getElementById('commentaire').value = '';
+      document.getElementById('duree').value = '';
+      
+      // Remettre la date du jour
+      const today = new Date();
+      document.getElementById('date').value = formatDateForInput(today);
+      
+      // Supprimer les classes d'invalidation
+      document.querySelectorAll('.is-invalid').forEach(function(field) {
+        field.classList.remove('is-invalid');
+      });
+      
+      // Masquer les messages
+      document.getElementById('status-message').style.display = 'none';
+      document.getElementById('success-confirmation').classList.add('d-none');
+    }
+    
+    function showStatusMessage(message, type) {
+      const statusElement = document.getElementById('status-message');
+      statusElement.textContent = message;
+      statusElement.className = `alert alert-${type} mb-4`;
+      statusElement.style.display = 'block';
+      
+      // Ne pas faire de scrolling automatique pour éviter de déplacer la page
+      // statusElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Faire disparaître le message après un délai (sauf pour les erreurs)
+      if (type !== 'danger') {
+        setTimeout(function() {
+          statusElement.style.display = 'none';
+        }, 5000);
+      }
+    }
+    
+    // Nouvelle fonction pour afficher une notification discrète qui ne fait pas bouger la page
+    function showDiscreteNotification(message, type) {
+      // Créer ou réutiliser un élément de notification flottant
+      let notifContainer = document.getElementById('discrete-notification');
+      
+      if (!notifContainer) {
+        notifContainer = document.createElement('div');
+        notifContainer.id = 'discrete-notification';
+        notifContainer.className = 'position-fixed top-0 end-0 p-3';
+        notifContainer.style.zIndex = '5';
+        document.body.appendChild(notifContainer);
+      }
+      
+      // Générer un ID unique pour cette notification
+      const notifId = 'toast-' + Date.now();
+      
+      // Créer le contenu de la notification
+      const toastHTML = `
+        <div id="${notifId}" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="toast-header ${type === 'info' ? 'bg-info' : type === 'warning' ? 'bg-warning' : type === 'danger' ? 'bg-danger' : 'bg-success'} ${type === 'warning' ? 'text-dark' : 'text-white'}">
+            <i class="fas ${type === 'info' ? 'fa-info-circle' : type === 'warning' ? 'fa-exclamation-triangle' : type === 'danger' ? 'fa-exclamation-circle' : 'fa-check-circle'} me-2"></i>
+            <strong class="me-auto">${type === 'info' ? 'Information' : type === 'warning' ? 'Attention' : type === 'danger' ? 'Erreur' : 'Succès'}</strong>
+            <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('${notifId}').remove()" aria-label="Close"></button>
+          </div>
+          <div class="toast-body">
+            ${message}
+          </div>
+        </div>
+      `;
+      
+      // Ajouter la notification au conteneur
+      const toastElement = document.createElement('div');
+      toastElement.innerHTML = toastHTML;
+      notifContainer.appendChild(toastElement.firstElementChild);
+      
+      // Supprimer automatiquement après un délai
+      setTimeout(() => {
+        const notification = document.getElementById(notifId);
+        if (notification) {
+          notification.classList.remove('show');
+          setTimeout(() => notification.remove(), 500);
+        }
+      }, 4000);
+    }
+    
+    function showLoader(show) {
+      document.getElementById('loader').style.display = show ? 'flex' : 'none';
+      document.getElementById('alea-form').style.display = show ? 'none' : 'block';
+    }
+    
+    function formatDateForInput(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+  </script>
+</body>
+</html>

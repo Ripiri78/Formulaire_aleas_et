@@ -12,7 +12,7 @@
   <!-- Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   
-      <style>
+  <style>
     :root {
       --primary: #4361ee;
       --primary-light: #e9efff;
@@ -125,6 +125,91 @@
       background-color: var(--primary);
     }
     
+    /* Mode de saisie tabs */
+    .nav-tabs .nav-link {
+      border: none;
+      color: var(--text-dark);
+      font-weight: 500;
+      padding: 12px 20px;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+      transition: var(--transition);
+    }
+    
+    .nav-tabs .nav-link:hover {
+      background-color: rgba(67, 97, 238, 0.05);
+    }
+    
+    .nav-tabs .nav-link.active {
+      color: var(--primary);
+      background-color: #fff;
+      border-bottom: 3px solid var(--primary);
+    }
+    
+    .nav-tabs .nav-link i {
+      margin-right: 8px;
+    }
+    
+    /* Styles pour la liste des aléas multiples */
+    .alea-item {
+      border-left: 3px solid var(--primary);
+      transition: var(--transition);
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .alea-item:hover {
+      background-color: var(--primary-light);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Badge pour le compteur d'aléas */
+    .badge-counter {
+      background-color: var(--primary);
+      color: white;
+      transition: all 0.3s ease;
+      animation: pulse 1.5s infinite;
+    }
+    
+    /* Styles pour les opérateurs sélectionnés */
+    .selected-operator {
+      background-color: var(--primary-light);
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin: 5px;
+      display: inline-flex;
+      align-items: center;
+      transition: var(--transition);
+      cursor: default;
+    }
+    
+    .selected-operator:hover {
+      background-color: #d8e2ff;
+    }
+    
+    .selected-operator .remove-op {
+      color: var(--warning);
+      cursor: pointer;
+      margin-left: 8px;
+      transition: var(--transition);
+    }
+    
+    .selected-operator .remove-op:hover {
+      transform: scale(1.2);
+    }
+    
+    /* Checkbox personnalisée */
+    .custom-checkbox {
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .custom-checkbox:hover {
+      background-color: var(--primary-light);
+    }
+    
     /* Responsive adjustments */
     @media (max-width: 768px) {
       .card {
@@ -200,6 +285,17 @@
       animation: slideIn 0.3s ease forwards;
     }
     
+    /* Button shake animation */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    
+    .btn-shake {
+      animation: shake 0.8s ease;
+    }
+    
     /* Dark mode support */
     @media (prefers-color-scheme: dark) {
       body {
@@ -227,6 +323,57 @@
         color: #e0e0e0;
       }
     }
+
+    .autocomplete-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: none;
+}
+
+.suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background-color 0.2s;
+}
+
+.suggestion-item:hover, 
+.suggestion-item.active {
+  background-color: var(--primary-light);
+}
+
+.suggestion-item .operateur-nom {
+  font-weight: 600;
+}
+
+.suggestion-item .operateur-sa {
+  color: var(--text-light);
+  font-size: 0.85em;
+  margin-left: 5px;
+}
+
+.suggestion-item .operateur-equipe {
+  float: right;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background-color: #eee;
+  font-size: 0.75em;
+}
+
+.highlight {
+  background-color: rgba(67, 97, 238, 0.1);
+  font-weight: bold;
+}
+
   </style>
 </head>
 
@@ -255,109 +402,425 @@
       </div>
     </div>
     
-    <!-- Formulaire -->
+    <!-- Formulaire avec onglets -->
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="fas fa-file-alt me-2"></i>Nouvel aléa</span>
         <span class="badge bg-primary" id="date-jour"></span>
       </div>
+      
+      <!-- Système d'onglets pour les modes de saisie -->
+      <ul class="nav nav-tabs" id="modesTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="standard-tab" data-bs-toggle="tab" data-bs-target="#standard-mode" type="button" role="tab" aria-controls="standard-mode" aria-selected="true">
+            <i class="fas fa-user"></i> Saisie standard
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="multi-aleas-tab" data-bs-toggle="tab" data-bs-target="#multi-aleas-mode" type="button" role="tab" aria-controls="multi-aleas-mode" aria-selected="false">
+            <i class="fas fa-list-check"></i> Plusieurs aléas / opérateur <span id="multi-aleas-counter" class="badge rounded-pill badge-counter ms-2" style="display: none;">0</span>
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="multi-op-tab" data-bs-toggle="tab" data-bs-target="#multi-op-mode" type="button" role="tab" aria-controls="multi-op-mode" aria-selected="false">
+            <i class="fas fa-users"></i> Même aléa / plusieurs opérateurs <span id="multi-op-counter" class="badge rounded-pill badge-counter ms-2" style="display: none;">0</span>
+          </button>
+        </li>
+      </ul>
+      
       <div class="card-body">
         <!-- Loader (masqué par défaut) -->
         <div id="loader" class="loader" style="display: none;">
           <div class="spinner"></div>
-          <p class="text-muted">Traitement en cours...</p>
+          <p class="text-muted" id="loader-text">Traitement en cours...</p>
         </div>
         
-        <!-- Formulaire principal -->
-        <form id="alea-form">
-          <div class="row">
-            <!-- SA (avec auto-complétion) -->
-            <div class="col-md-4 mb-3">
-              <label for="sa" class="form-label required-field">Numéro SA</label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
-                <input type="text" class="form-control" id="sa" name="sa" required 
-                      placeholder="Entrez votre numéro SA">
-                <button class="btn btn-outline-primary" type="button" id="btn-search-sa">
-                  <i class="fas fa-search"></i>
+        <!-- Contenu des onglets -->
+        <div class="tab-content" id="modesTabContent">
+          
+          <!-- 1. Onglet Saisie Standard -->
+          <div class="tab-pane fade show active" id="standard-mode" role="tabpanel" aria-labelledby="standard-tab">
+            <!-- Formulaire principal (existant) -->
+            <form id="alea-form">
+               <div class="col-md-4 mb-3">
+  <label for="operateur-search" class="form-label required-field">Nom opérateur</label>
+  <div class="input-group">
+    <span class="input-group-text"><i class="fas fa-user"></i></span>
+    <input type="text" class="form-control operateur-autocomplete" id="operateur-search" 
+           placeholder="Rechercher un opérateur" autocomplete="off">
+    <button class="btn btn-outline-primary" type="button" id="btn-clear-operateur">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="position-relative">
+    <div id="operateur-suggestions" class="autocomplete-suggestions"></div>
+  </div>
+  <!-- Champs cachés pour stocker les informations -->
+  <input type="hidden" id="selected-sa" name="sa">
+  <input type="hidden" id="selected-operateur" name="operateur">
+  <input type="hidden" id="selected-equipe" name="equipe">
+</div>
+              <div class="row">
+                <!-- SA (avec auto-complétion) -->
+                <div class="col-md-4 mb-3">
+                  <label for="sa" class="form-label required-field">Numéro SA</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                    <input type="text" class="form-control" id="sa" name="sa" required placeholder="Entrez votre numéro SA">
+                    <button class="btn btn-outline-primary" type="button" id="btn-search-sa">
+                      <i class="fas fa-search"></i>
+                    </button>
+                  </div>
+                  <div class="form-text text-muted">Saisissez votre numéro SA pour compléter automatiquement vos informations.</div>
+                </div>
+                
+                <!-- Opérateur (auto-rempli) -->
+                <div class="col-md-4 mb-3">
+                  <label for="operateur" class="form-label">Nom opérateur</label>
+                  <input type="text" class="form-control" id="operateur" name="operateur" readonly>
+                </div>
+                
+                <!-- Équipe (auto-remplie) -->
+                <div class="col-md-4 mb-3">
+                  <label for="equipe" class="form-label">Équipe</label>
+                  <input type="text" class="form-control" id="equipe" name="equipe" readonly>
+                </div>
+              </div>
+              
+              <div class="row">
+                <!-- Poste (liste déroulante au lieu de la datalist) -->
+                <div class="col-md-6 mb-3">
+                  <label for="poste" class="form-label required-field">Poste</label>
+                  <select class="form-select" id="poste" name="poste" required>
+                    <option value="" selected disabled>Sélectionnez un poste</option>
+                    <!-- Options ajoutées dynamiquement -->
+                  </select>
+                </div>
+                
+                <!-- Date -->
+                <div class="col-md-6 mb-3">
+                  <label for="date" class="form-label required-field">Date</label>
+                  <input type="date" class="form-control" id="date" name="date" required>
+                </div>
+              </div>
+              
+              <div class="row">
+                <!-- Type d'aléa -->
+                <div class="col-md-6 mb-3">
+                  <label for="type-alea" class="form-label required-field">Type d'aléa</label>
+                  <select class="form-select" id="type-alea" name="typeAlea" required>
+                    <option value="" selected disabled>Sélectionnez un type d'aléa</option>
+                    <!-- Les options seront ajoutées dynamiquement -->
+                  </select>
+                </div>
+                
+                <!-- Durée de l'aléa -->
+                <div class="col-md-6 mb-3">
+                  <label for="duree" class="form-label required-field">Durée de l'aléa (en heures)</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="duree" name="duree" required min="0.1" max="24" step="0.1" placeholder="Ex: 2.5">
+                    <span class="input-group-text">h</span>
+                  </div>
+                  <div class="form-text">Indiquez la durée en heures (exemple: 1.5 pour 1h30)</div>
+                </div>
+              </div>
+              
+              <!-- Commentaire -->
+              <div class="mb-3">
+                <label for="commentaire" class="form-label">Commentaire</label>
+                <textarea class="form-control" id="commentaire" name="commentaire" rows="3" placeholder="Informations complémentaires sur l'aléa..."></textarea>
+              </div>
+              
+              <!-- Boutons d'action -->
+              <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" class="btn btn-light" id="btn-reset">
+                  <i class="fas fa-undo me-2"></i>Réinitialiser
+                </button>
+                <button type="submit" class="btn btn-primary" id="btn-submit">
+                  <i class="fas fa-save me-2"></i>Enregistrer
                 </button>
               </div>
-              <div class="form-text text-muted">Saisissez votre numéro SA pour compléter automatiquement vos informations.</div>
-            </div>
-            
-            <!-- Opérateur (auto-rempli) -->
-            <div class="col-md-4 mb-3">
-              <label for="operateur" class="form-label">Nom opérateur</label>
-              <input type="text" class="form-control" id="operateur" name="operateur" readonly>
-            </div>
-            
-            <!-- Équipe (auto-remplie) -->
-            <div class="col-md-4 mb-3">
-              <label for="equipe" class="form-label">Équipe</label>
-              <input type="text" class="form-control" id="equipe" name="equipe" readonly>
-            </div>
+             
+            </form>
           </div>
+
           
-          <div class="row">
-            <!-- Poste (liste déroulante au lieu de la datalist) -->
-            <div class="col-md-6 mb-3">
-              <label for="poste" class="form-label required-field">Poste</label>
-              <select class="form-select" id="poste" name="poste" required>
-                <option value="" selected disabled>Sélectionnez un poste</option>
-                <!-- Options ajoutées dynamiquement -->
-              </select>
-            </div>
-            
-            <!-- Date -->
-            <div class="col-md-6 mb-3">
-              <label for="date" class="form-label required-field">Date</label>
-              <input type="date" class="form-control" id="date" name="date" required>
-            </div>
-          </div>
-          
-          <div class="row">
-            <!-- Type d'aléa -->
-            <div class="col-md-6 mb-3">
-  <label for="type-alea" class="form-label required-field">Type d'aléa</label>
-  <select class="form-select" id="type-alea" name="typeAlea" required>
-    <option value="" selected disabled>Sélectionnez un type d'aléa</option>
-    <!-- Les options seront ajoutées dynamiquement -->
-  </select>
+          <!-- 2. Onglet Plusieurs Aléas pour un Opérateur -->
+          <div class="tab-pane fade" id="multi-aleas-mode" role="tabpanel" aria-labelledby="multi-aleas-tab">
+            <div class="row">
+              <div class="col-lg-4">
+                <!-- Sélection de l'opérateur -->
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <i class="fas fa-user me-2"></i>Sélection de l'opérateur
+                  </div>
+                  <div class="mb-3">
+  <label for="multi-operateur-search" class="form-label required-field">Nom opérateur</label>
+  <div class="input-group">
+    <span class="input-group-text"><i class="fas fa-user"></i></span>
+    <input type="text" class="form-control operateur-autocomplete" id="multi-operateur-search" 
+           placeholder="Rechercher un opérateur" autocomplete="off">
+    <button class="btn btn-outline-primary" type="button" id="btn-clear-multi-operateur">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="position-relative">
+    <div id="multi-operateur-suggestions" class="autocomplete-suggestions"></div>
+  </div>
+  <!-- Champs cachés pour stocker les informations -->
+
+  <input type="hidden" id="multi-selected-sa" name="multi-sa">
+  <input type="hidden" id="multi-selected-operateur" name="multi-operateur">
+  <input type="hidden" id="multi-selected-equipe" name="multi-equipe">
 </div>
-            
-            <!-- Durée de l'aléa -->
-            <div class="col-md-6 mb-3">
-              <label for="duree" class="form-label required-field">Durée de l'aléa (en heures)</label>
-              <div class="input-group">
-                <input type="number" class="form-control" id="duree" name="duree" required 
-                       min="0.1" max="24" step="0.1" placeholder="Ex: 2.5">
-                <span class="input-group-text">h</span>
+                  <div class="card-body">
+                    <div class="mb-3">
+                      <label for="multi-sa" class="form-label required-field">Numéro SA</label>
+                      <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                        <input type="text" class="form-control" id="multi-sa" required placeholder="Entrez le numéro SA">
+                        <button class="btn btn-outline-primary" type="button" id="btn-search-multi-sa">
+                          <i class="fas fa-search"></i>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <label for="multi-operateur" class="form-label">Nom opérateur</label>
+                      <input type="text" class="form-control" id="multi-operateur" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <label for="multi-equipe" class="form-label">Équipe</label>
+                      <input type="text" class="form-control" id="multi-equipe" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                      <label for="multi-poste" class="form-label required-field">Poste</label>
+                      <select class="form-select" id="multi-poste" required>
+                        <option value="" selected disabled>Sélectionnez un poste</option>
+                        <!-- Options ajoutées dynamiquement -->
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="form-text">Indiquez la durée en heures (exemple: 1.5 pour 1h30)</div>
+              
+              <div class="col-lg-8">
+                <!-- Formulaire d'aléa à ajouter -->
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span><i class="fas fa-plus-circle me-2"></i>Ajouter un aléa</span>
+                      <span class="badge bg-primary" id="multi-date-jour"></span>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <form id="multi-alea-form">
+                      <div class="row">
+                        <div class="col-md-6 mb-3">
+                          <label for="multi-date" class="form-label required-field">Date</label>
+                          <input type="date" class="form-control" id="multi-date" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                          <label for="multi-type-alea" class="form-label required-field">Type d'aléa</label>
+                          <select class="form-select" id="multi-type-alea" required>
+                            <option value="" selected disabled>Sélectionnez un type d'aléa</option>
+                            <!-- Options ajoutées dynamiquement -->
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div class="row">
+                        <div class="col-md-6 mb-3">
+                          <label for="multi-duree" class="form-label required-field">Durée (en heures)</label>
+                          <div class="input-group">
+                            <input type="number" class="form-control" id="multi-duree" required min="0.1" max="24" step="0.1" placeholder="Ex: 2.5">
+                            <span class="input-group-text">h</span>
+                          </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                          <label for="multi-commentaire" class="form-label">Commentaire</label>
+                          <textarea class="form-control" id="multi-commentaire" rows="1" placeholder="Informations complémentaires..."></textarea>
+                        </div>
+                      </div>
+                      
+                      <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-primary" id="btn-add-alea">
+                          <i class="fas fa-plus me-2"></i>Ajouter à la liste
+                        </button>
+                      </div>
+                    </form>
+
+                  </div>
+                  
+                </div>
+                
+                <!-- Liste des aléas ajoutés -->
+                <div class="card">
+                  <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span><i class="fas fa-list me-2"></i>Liste des aléas à enregistrer</span>
+                      <span class="badge bg-primary" id="multi-aleas-count">0 aléa(s)</span>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div id="multi-aleas-list" class="mb-3">
+                      <div class="text-center text-muted py-4" id="empty-aleas-message">
+                        <i class="fas fa-clipboard fa-2x mb-2"></i>
+                        <p>Aucun aléa ajouté pour le moment</p>
+                      </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                      <button type="button" class="btn btn-outline-danger" id="btn-clear-aleas">
+                        <i class="fas fa-trash me-2"></i>Vider la liste
+                      </button>
+                      <button type="button" class="btn btn-success" id="btn-save-multi-aleas" disabled>
+                        <i class="fas fa-save me-2"></i>Enregistrer tous les aléas
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
-          <!-- Commentaire -->
-          <div class="mb-3">
-            <label for="commentaire" class="form-label">Commentaire</label>
-            <textarea class="form-control" id="commentaire" name="commentaire" rows="3"
-                    placeholder="Informations complémentaires sur l'aléa..."></textarea>
+          <!-- 3. Onglet Même Aléa pour Plusieurs Opérateurs -->
+          <div class="tab-pane fade" id="multi-op-mode" role="tabpanel" aria-labelledby="multi-op-tab">
+            <div class="row">
+              <div class="col-lg-4">
+                <!-- Détails de l'aléa -->
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Détails de l'aléa
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-12 mb-3">
+                        <label for="shared-date" class="form-label required-field">Date</label>
+                        <input type="date" class="form-control" id="shared-date" required>
+                      </div>
+                      
+                      <div class="col-md-12 mb-3">
+                        <label for="shared-type-alea" class="form-label required-field">Type d'aléa</label>
+                        <select class="form-select" id="shared-type-alea" required>
+                          <option value="" selected disabled>Sélectionnez un type d'aléa</option>
+                          <!-- Options ajoutées dynamiquement -->
+                        </select>
+                      </div>
+                      
+                      <div class="col-md-12 mb-3">
+                        <label for="shared-duree" class="form-label required-field">Durée (en heures)</label>
+                        <div class="input-group">
+                          <input type="number" class="form-control" id="shared-duree" required min="0.1" max="24" step="0.1" placeholder="Ex: 2.5">
+                          <span class="input-group-text">h</span>
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-12 mb-3">
+                        <label for="shared-commentaire" class="form-label">Commentaire</label>
+                        <textarea class="form-control" id="shared-commentaire" rows="2" placeholder="Informations complémentaires..."></textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-lg-8">
+                <!-- Ajout d'opérateur -->
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <i class="fas fa-user-plus me-2"></i>Ajouter un opérateur
+                  </div>
+                                    
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-4 mb-3">
+                        <label for="add-op-sa" class="form-label required-field">Numéro SA</label>
+                        <div class="input-group">
+                          <input type="text" class="form-control" id="add-op-sa" placeholder="Numéro SA">
+                          <button class="btn btn-outline-primary" type="button" id="btn-search-add-op">
+                            <i class="fas fa-search"></i>
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-4 mb-3">
+                        <label for="add-op-name" class="form-label">Nom opérateur</label>
+                        <input type="text" class="form-control" id="add-op-name" readonly>
+                      </div>
+                      
+                      <div class="col-md-4 mb-3">
+                        <label for="add-op-poste" class="form-label required-field">Poste</label>
+                        <select class="form-select" id="add-op-poste">
+                          <option value="" selected disabled>Sélectionnez</option>
+                          <!-- Options ajoutées dynamiquement -->
+                        </select>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+  <label for="add-op-search" class="form-label required-field">Nom opérateur</label>
+  <div class="input-group">
+    <span class="input-group-text"><i class="fas fa-user"></i></span>
+    <input type="text" class="form-control operateur-autocomplete" id="add-op-search" 
+           placeholder="Rechercher un opérateur" autocomplete="off">
+    <button class="btn btn-outline-primary" type="button" id="btn-clear-add-op">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="position-relative">
+    <div id="add-op-suggestions" class="autocomplete-suggestions"></div>
+  </div>
+  <!-- Champs cachés pour stocker les informations -->
+  <input type="hidden" id="add-op-sa" name="add-op-sa">
+  <input type="hidden" id="add-op-name" name="add-op-name" data-equipe="">
+</div>
+                    <div class="d-flex justify-content-end">
+                      <button type="button" class="btn btn-primary" id="btn-add-operator" disabled>
+                        <i class="fas fa-plus me-2"></i>Ajouter à la liste
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+                
+                <!-- Liste des opérateurs sélectionnés -->
+                <div class="card">
+                  <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span><i class="fas fa-users me-2"></i>Opérateurs sélectionnés</span>
+                      <span class="badge bg-primary" id="multi-op-count">0 opérateur(s)</span>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div id="selected-operators-container" class="mb-3">
+                      <div class="text-center text-muted py-4" id="empty-operators-message">
+                        <i class="fas fa-user-slash fa-2x mb-2"></i>
+                        <p>Aucun opérateur sélectionné</p>
+                      </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                      <button type="button" class="btn btn-outline-danger" id="btn-clear-operators">
+                        <i class="fas fa-trash me-2"></i>Vider la liste
+                      </button>
+                      <button type="button" class="btn btn-success" id="btn-save-multi-operators" disabled>
+                        <i class="fas fa-save me-2"></i>Enregistrer pour tous
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <!-- Boutons d'action -->
-          <div class="d-flex justify-content-end gap-2 mt-4">
-            <button type="button" class="btn btn-light" id="btn-reset">
-              <i class="fas fa-undo me-2"></i>Réinitialiser
-            </button>
-            <button type="submit" class="btn btn-primary" id="btn-submit">
-              <i class="fas fa-save me-2"></i>Enregistrer
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
-    
-  
     
     <!-- Légende -->
     <div class="mt-2 text-muted small">
@@ -367,289 +830,684 @@
 
   <!-- Bootstrap JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // JavaScript pour implémenter les fonctionnalités de saisie en masse
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Configuration initiale
+  const today = new Date();
   
-  <!-- Script principal -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Afficher la date du jour
-      const today = new Date();
-      const formattedDate = today.toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-      document.getElementById('date-jour').textContent = formattedDate;
-      
-      // Définir la date du jour par défaut dans le champ date
-      const inputDate = document.getElementById('date');
-      inputDate.value = formatDateForInput(today);
-      
-      // Initialiser les écouteurs d'événements
-      initEventListeners();
-      
-      // Charger les postes pour la liste déroulante
-      loadPostesList();
-      loadTypesAleas();
-      
-      // Test de connexion
-      testConnection();
+  // Afficher la date du jour dans tous les emplacements nécessaires
+  const formattedDate = today.toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  // Appliquer la date formatée
+  document.querySelectorAll('#date-jour, #multi-date-jour').forEach(el => {
+    if (el) el.textContent = formattedDate;
+  });
+  
+  // Configurer la date du jour par défaut pour tous les champs de date
+  document.querySelectorAll('#date, #multi-date, #shared-date').forEach(el => {
+    if (el) el.value = formatDateForInput(today);
+  });
+  
+  // Initialiser les écouteurs d'événements pour toutes les fonctionnalités
+  initAllEventListeners();
+  
+  // Charger les listes pour tous les champs déroulants
+  loadAllSelectLists();
+  
+  // Initialiser les compteurs et les tableaux pour stocker les données
+  initDataStores();
+  
+  // Test de connexion
+  testConnection();
+});
+
+// Tableaux pour stocker les données
+let multiAleasList = [];
+let selectedOperators = [];
+let allOperateurs = [];
+
+function initOperateurSearch() {
+  // Précharger la liste des opérateurs une seule fois au chargement
+  loadAllOperateurs();
+  
+  // Initialiser l'autocomplétion pour chaque champ de recherche
+  setupAutocomplete('operateur-search', 'operateur-suggestions', 'selected-sa', 'selected-operateur', 'selected-equipe', 'poste');
+  setupAutocomplete('multi-operateur-search', 'multi-operateur-suggestions', 'multi-selected-sa', 'multi-selected-operateur', 'multi-selected-equipe', 'multi-poste');
+  setupAutocomplete('add-op-search', 'add-op-suggestions', 'add-op-sa', 'add-op-name', null, 'add-op-poste');
+  
+  // Initialiser les boutons de réinitialisation
+  setupClearButton('btn-clear-operateur', 'operateur-search', 'selected-sa', 'selected-operateur', 'selected-equipe', 'poste');
+  setupClearButton('btn-clear-multi-operateur', 'multi-operateur-search', 'multi-selected-sa', 'multi-selected-operateur', 'multi-selected-equipe', 'multi-poste');
+  setupClearButton('btn-clear-add-op', 'add-op-search', 'add-op-sa', 'add-op-name', null, 'add-op-poste');
+}
+function initDataStores() {
+  // Initialiser/réinitialiser les tableaux
+  multiAleasList = [];
+  selectedOperators = [];
+  
+  // Réinitialiser les compteurs affichés
+  updateMultiAleasCounter();
+  updateMultiOperatorsCounter();
+}
+
+function initAllEventListeners() {
+
+  initOperateurSearch();
+  // ===== FONCTIONNALITÉS DU MODE STANDARD =====
+  initStandardModeListeners();
+  
+  // ===== FONCTIONNALITÉS DU MODE MULTI-ALÉAS =====
+  initMultiAleasModeListeners();
+  
+  // ===== FONCTIONNALITÉS DU MODE MULTI-OPÉRATEURS =====
+  initMultiOperatorsModeListeners();
+
+
+  
+  // Écouteurs d'événements pour les onglets
+  document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tabEl => {
+    tabEl.addEventListener('shown.bs.tab', function (event) {
+      // Action à effectuer lors du changement d'onglet
+      const targetId = event.target.getAttribute('data-bs-target');
+      console.log(`Changement vers l'onglet: ${targetId}`);
     });
-    
-    function initEventListeners() {
-      // Bouton de recherche par SA
-      document.getElementById('btn-search-sa').addEventListener('click', function() {
-        fetchOperateurInfo();
-      });
-      
-      // Recherche automatique quand l'utilisateur quitte le champ SA
-      document.getElementById('sa').addEventListener('blur', function() {
-        if (this.value.trim() !== '') {
-          fetchOperateurInfo();
-        }
-      });
-      
-      // Recherche en appuyant sur Entrée dans le champ SA
-      document.getElementById('sa').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          e.preventDefault(); // Empêcher la soumission du formulaire
-          fetchOperateurInfo();
-        }
-      });
-      
-      // Recherche automatique après un court délai de frappe - délai plus court
-      let typingTimer;
-      document.getElementById('sa').addEventListener('input', function() {
-        clearTimeout(typingTimer);
-        if (this.value.trim().length >= 3) { // Commencer la recherche à partir de 3 caractères
-          // Animation de progression pour indiquer l'attente
-          const searchButton = document.getElementById('btn-search-sa');
-          searchButton.innerHTML = '<i class="fas fa-ellipsis-h"></i>';
-          
-          typingTimer = setTimeout(fetchOperateurInfo, 300); // 300ms de délai pour une recherche plus rapide
-        }
-      });
-      
-      // Soumission du formulaire
-      document.getElementById('alea-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        submitForm();
-      });
-      
-      // Bouton de réinitialisation
-      document.getElementById('btn-reset').addEventListener('click', function() {
-        resetForm();
-      });
+  });
+}
+
+function initStandardModeListeners() {
+  // Bouton de recherche par SA (mode standard)
+  document.getElementById('btn-search-sa')?.addEventListener('click', function() {
+    fetchOperateurInfo('sa', 'operateur', 'equipe', 'poste', 'btn-search-sa');
+  });
+  
+  // Recherche automatique quand l'utilisateur quitte le champ SA
+  document.getElementById('sa')?.addEventListener('blur', function() {
+    if (this.value.trim() !== '') {
+      fetchOperateurInfo('sa', 'operateur', 'equipe', 'poste', 'btn-search-sa');
     }
-    
-    function testConnection() {
-      google.script.run
-        .withSuccessHandler(function(response) {
-          console.log("Test de connexion réussi:", response);
-        })
-        .withFailureHandler(function(error) {
-          showStatusMessage("Erreur de connexion au serveur: " + error, "danger");
-        })
-        .testConnection();
+  });
+  
+  // Recherche en appuyant sur Entrée dans le champ SA
+  document.getElementById('sa')?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Empêcher la soumission du formulaire
+      fetchOperateurInfo('sa', 'operateur', 'equipe', 'poste', 'btn-search-sa');
     }
-    
-    function fetchOperateurInfo() {
-      const sa = document.getElementById('sa').value.trim();
-      
-      if (!sa) {
-        showStatusMessage("Veuillez saisir un numéro SA", "warning");
-        return;
-      }
-      
-      // Indiquer visuellement que la recherche est en cours sans masquer tout le formulaire
-      const saInput = document.getElementById('sa');
+  });
+  
+  // Recherche automatique après un court délai de frappe
+  let typingTimer;
+  document.getElementById('sa')?.addEventListener('input', function() {
+    clearTimeout(typingTimer);
+    if (this.value.trim().length >= 3) {
+      // Animation de progression pour indiquer l'attente
       const searchButton = document.getElementById('btn-search-sa');
+      if (searchButton) searchButton.innerHTML = '<i class="fas fa-ellipsis-h"></i>';
       
-      // Modification: indicateur plus discret dans le bouton uniquement
-      searchButton.disabled = true;
-      searchButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-      
-      google.script.run
-        .withSuccessHandler(function(response) {
-          // Restaurer l'interface
-          searchButton.disabled = false;
-          searchButton.innerHTML = '<i class="fas fa-search"></i>';
-          
-          if (response.success) {
-            // Remplir les champs avec les données récupérées
-            document.getElementById('operateur').value = response.operateur;
-            document.getElementById('equipe').value = response.equipe;
-            
-            // Sélectionner le poste habituel s'il est disponible
-            if (response.poste) {
-              const posteSelect = document.getElementById('poste');
-              for (let i = 0; i < posteSelect.options.length; i++) {
-                if (posteSelect.options[i].value === response.poste) {
-                  posteSelect.selectedIndex = i;
-                  break;
-                }
-              }
-            }
-            
-            // Notification discrète au lieu d'un message qui fait bouger la page
-            showDiscreteNotification("Informations récupérées pour " + response.operateur, "info");
-            
-            // Mettre le focus sur le champ suivant
-            document.getElementById('poste').focus();
-          } else {
-            // Notification d'erreur discrète
-            showDiscreteNotification(response.message, "warning");
-            // Remettre le focus sur le champ SA
-            document.getElementById('sa').focus();
-          }
-        })
-        .withFailureHandler(function(error) {
-          // Restaurer l'interface
-          searchButton.disabled = false;
-          searchButton.innerHTML = '<i class="fas fa-search"></i>';
-          
-          showDiscreteNotification("Erreur: " + error, "danger");
-        })
-        .getOperateurInfoBySA(sa);
+      typingTimer = setTimeout(() => {
+        fetchOperateurInfo('sa', 'operateur', 'equipe', 'poste', 'btn-search-sa');
+      }, 300);
+    }
+  });
+  
+  // Soumission du formulaire standard
+  document.getElementById('alea-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    submitStandardForm();
+  });
+  
+  // Bouton de réinitialisation (mode standard)
+  document.getElementById('btn-reset')?.addEventListener('click', function() {
+    resetStandardForm();
+  });
+}
+
+function initMultiAleasModeListeners() {
+  // Recherche d'opérateur dans le mode multi-aléas
+  const btnSearchMultiSa = document.getElementById('btn-search-multi-sa');
+  if (btnSearchMultiSa) {
+    btnSearchMultiSa.addEventListener('click', function() {
+      fetchOperateurInfo('multi-sa', 'multi-operateur', 'multi-equipe', 'multi-poste', 'btn-search-multi-sa');
+    });
+  }
+  
+  // Recherche auto en quittant le champ
+  const multiSaInput = document.getElementById('multi-sa');
+  if (multiSaInput) {
+    multiSaInput.addEventListener('blur', function() {
+      if (this.value.trim() !== '') {
+        fetchOperateurInfo('multi-sa', 'multi-operateur', 'multi-equipe', 'multi-poste', 'btn-search-multi-sa');
+      }
+    });
+  }
+  
+  // Bouton d'ajout d'aléa à la liste
+  const btnAddAlea = document.getElementById('btn-add-alea');
+  if (btnAddAlea) {
+    // S'assurer qu'un seul écouteur est attaché
+    btnAddAlea.removeEventListener('click', addAleaToList);
+    btnAddAlea.addEventListener('click', addAleaToList);
+  }
+  
+  // Bouton pour vider la liste des aléas
+  const btnClearAleas = document.getElementById('btn-clear-aleas');
+  if (btnClearAleas) {
+    // S'assurer qu'un seul écouteur est attaché
+    btnClearAleas.removeEventListener('click', clearAleasList);
+    btnClearAleas.addEventListener('click', clearAleasList);
+  }
+  
+  // Bouton pour enregistrer tous les aléas
+  const btnSaveMultiAleas = document.getElementById('btn-save-multi-aleas');
+  if (btnSaveMultiAleas) {
+    // S'assurer qu'un seul écouteur est attaché
+    btnSaveMultiAleas.removeEventListener('click', saveMultipleAleas);
+    btnSaveMultiAleas.addEventListener('click', saveMultipleAleas);
+  }
+}
+
+function initMultiOperatorsModeListeners() {
+  // Recherche d'opérateur dans le mode multi-opérateurs
+  const btnSearchAddOp = document.getElementById('btn-search-add-op');
+  if (btnSearchAddOp) {
+    // S'assurer qu'un seul écouteur est attaché
+    btnSearchAddOp.removeEventListener('click', searchAddOpHandler);
+    btnSearchAddOp.addEventListener('click', searchAddOpHandler);
+  }
+  
+  // Recherche automatique quand on quitte le champ SA
+  const addOpSa = document.getElementById('add-op-sa');
+  if (addOpSa) {
+    addOpSa.addEventListener('blur', function() {
+      if (this.value.trim() !== '') {
+        searchAddOpHandler();
+      }
+    });
+  }
+  
+  // Activer le bouton d'ajout quand un opérateur est trouvé
+  const addOpName = document.getElementById('add-op-name');
+  if (addOpName) {
+    addOpName.addEventListener('input', function() { // Changé de 'change' à 'input' pour une réaction immédiate
+      const addOpButton = document.getElementById('btn-add-operator');
+      if (addOpButton) {
+        addOpButton.disabled = !this.value;
+        if (this.value) {
+          // Animation pour attirer l'attention
+          addOpButton.classList.add('btn-shake');
+          setTimeout(() => {
+            addOpButton.classList.remove('btn-shake');
+          }, 800);
+        }
+      }
+    });
+  }
+  
+  // Bouton d'ajout d'opérateur à la liste
+  const btnAddOperator = document.getElementById('btn-add-operator');
+  if (btnAddOperator) {
+    // S'assurer qu'un seul écouteur est attaché
+    btnAddOperator.removeEventListener('click', addOperatorToList);
+    btnAddOperator.addEventListener('click', addOperatorToList);
+  }
+  
+  // Bouton pour vider la liste des opérateurs
+  const btnClearOperators = document.getElementById('btn-clear-operators');
+  if (btnClearOperators) {
+    // S'assurer qu'un seul écouteur est attaché
+    btnClearOperators.removeEventListener('click', clearOperatorsList);
+    btnClearOperators.addEventListener('click', clearOperatorsList);
+  }
+  
+  // Bouton pour enregistrer l'aléa pour tous les opérateurs
+  const btnSaveMultiOperators = document.getElementById('btn-save-multi-operators');
+  if (btnSaveMultiOperators) {
+    // S'assurer qu'un seul écouteur est attaché
+    btnSaveMultiOperators.removeEventListener('click', saveAleaForMultipleOperators);
+    btnSaveMultiOperators.addEventListener('click', saveAleaForMultipleOperators);
+  }
+}
+
+function searchAddOpHandler() {
+  fetchOperateurInfo('add-op-sa', 'add-op-name', null, 'add-op-poste', 'btn-search-add-op', true);
+}
+
+function loadAllSelectLists() {
+  // Charger les listes de postes pour tous les champs select concernés
+  loadPostesForAllSelects();
+  
+  // Charger les types d'aléas pour tous les champs select concernés
+  loadTypesAleasForAllSelects();
+}
+
+function loadAllOperateurs() {
+  showDiscreteNotification("Chargement de la liste des opérateurs...", "info");
+  
+  google.script.run
+    .withSuccessHandler(function(response) {
+      if (response.success) {
+        allOperateurs = response.operateurs;
+        console.log(`Liste des opérateurs chargée: ${allOperateurs.length} opérateurs`);
+        showDiscreteNotification(`${allOperateurs.length} opérateurs chargés avec succès`, "success");
+      } else {
+        console.error("Erreur lors du chargement des opérateurs:", response.message);
+        showDiscreteNotification("Impossible de charger la liste des opérateurs. " + response.message, "warning");
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error("Erreur lors du chargement des opérateurs:", error);
+      showDiscreteNotification("Erreur lors du chargement des opérateurs: " + error, "danger");
+    })
+    .getAllOperateurs();
+}
+
+function setupClearButton(buttonId, searchFieldId, saFieldId, operateurFieldId, equipeFieldId, posteFieldId) {
+  const clearButton = document.getElementById(buttonId);
+  
+  if (!clearButton) return;
+  
+  clearButton.addEventListener('click', function() {
+    // Effacer le champ de recherche
+    document.getElementById(searchFieldId).value = '';
+    
+    // Effacer les champs cachés
+    document.getElementById(saFieldId).value = '';
+    document.getElementById(operateurFieldId).value = '';
+    
+    // Gérer l'équipe (peut être null)
+    if (equipeFieldId) {
+      document.getElementById(equipeFieldId).value = '';
+    } else if (operateurFieldId === 'add-op-name') {
+      // Cas spécial pour l'onglet "même aléa/plusieurs opérateurs"
+      document.getElementById(operateurFieldId).setAttribute('data-equipe', '');
+      // Désactiver le bouton d'ajout
+      const addOpButton = document.getElementById('btn-add-operator');
+      if (addOpButton) addOpButton.disabled = true;
     }
     
-    function loadPostesList() {
-      google.script.run
-        .withSuccessHandler(function(response) {
-          if (response.success) {
-            const posteSelect = document.getElementById('poste');
-            posteSelect.innerHTML = '<option value="" selected disabled>Sélectionnez un poste</option>';
-            
-            // Filtrer "RECU" de la liste et trier les postes
-            const filteredPostes = response.postes
-              .filter(poste => poste !== "RECU")
-              .sort();
+    // Réinitialiser le poste
+    if (posteFieldId) {
+      const posteSelect = document.getElementById(posteFieldId);
+      if (posteSelect) posteSelect.selectedIndex = 0;
+    }
+    
+    // Mettre le focus sur le champ de recherche
+    document.getElementById(searchFieldId).focus();
+  });
+}
+
+function setupAutocomplete(searchFieldId, suggestionsContainerId, saFieldId, operateurFieldId, equipeFieldId, posteFieldId) {
+  console.log(`Initialisation de l'autocomplétion: ${searchFieldId} → ${saFieldId}, ${operateurFieldId}`);
+  
+  const searchField = document.getElementById(searchFieldId);
+  const suggestionsContainer = document.getElementById(suggestionsContainerId);
+  
+  if (!searchField || !suggestionsContainer) {
+    console.error(`Champs non trouvés pour l'autocomplétion: ${searchFieldId}, ${suggestionsContainerId}`);
+    return;
+  }
+  
+  // Vérifie que les champs cibles existent
+  if (!document.getElementById(saFieldId)) {
+    console.error(`Champ cible non trouvé: ${saFieldId}`);
+  }
+  if (!document.getElementById(operateurFieldId)) {
+    console.error(`Champ cible non trouvé: ${operateurFieldId}`);
+  }
+  if (equipeFieldId && !document.getElementById(equipeFieldId)) {
+    console.error(`Champ cible non trouvé: ${equipeFieldId}`);
+  }
+  
+  // Variables pour gérer la navigation au clavier
+  let selectedIndex = -1;
+  let filteredOperateurs = [];
+  
+  // Événement d'entrée de texte
+  searchField.addEventListener('input', function() {
+    const searchText = this.value.trim().toLowerCase();
+    
+    if (searchText.length < 2) {
+      suggestionsContainer.style.display = 'none';
+      return;
+    }
+    
+    // Filtrer les opérateurs
+    filteredOperateurs = allOperateurs.filter(op => {
+      return op.nom.toLowerCase().includes(searchText) || 
+             op.sa.toLowerCase().includes(searchText);
+    }).slice(0, 10); // Limiter à 10 résultats
+    
+    // Afficher les suggestions
+    if (filteredOperateurs.length > 0) {
+      renderSuggestions(searchText, filteredOperateurs, suggestionsContainer);
+      suggestionsContainer.style.display = 'block';
+      selectedIndex = -1;
+    } else {
+      suggestionsContainer.style.display = 'none';
+    }
+  });
+  
+  // Événement de clic sur une suggestion
+  suggestionsContainer.addEventListener('click', function(e) {
+    const item = e.target.closest('.suggestion-item');
+    if (item) {
+      const index = parseInt(item.getAttribute('data-index'));
+      selectOperateur(index, filteredOperateurs, searchField, suggestionsContainer, saFieldId, operateurFieldId, equipeFieldId, posteFieldId);
+    }
+  });
+  
+  // Événement de focus pour montrer les suggestions existantes
+  searchField.addEventListener('focus', function() {
+    if (filteredOperateurs.length > 0) {
+      suggestionsContainer.style.display = 'block';
+    }
+  });
+  
+  // Événement de perte de focus pour masquer les suggestions
+  document.addEventListener('click', function(e) {
+    if (!searchField.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+      suggestionsContainer.style.display = 'none';
+    }
+  });
+  
+  // Événements de clavier pour la navigation
+  searchField.addEventListener('keydown', function(e) {
+    if (!filteredOperateurs.length) return;
+    
+    // Flèche bas
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = (selectedIndex + 1) % filteredOperateurs.length;
+      highlightSuggestion(selectedIndex, suggestionsContainer);
+    }
+    // Flèche haut
+    else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = selectedIndex <= 0 ? filteredOperateurs.length - 1 : selectedIndex - 1;
+      highlightSuggestion(selectedIndex, suggestionsContainer);
+    }
+    // Entrée
+    else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0) {
+        selectOperateur(selectedIndex, filteredOperateurs, searchField, suggestionsContainer, saFieldId, operateurFieldId, equipeFieldId, posteFieldId);
+      }
+    }
+    // Échap
+    else if (e.key === 'Escape') {
+      suggestionsContainer.style.display = 'none';
+    }
+  });
+}
+
+// Afficher les suggestions
+function renderSuggestions(searchText, operateurs, container) {
+  container.innerHTML = '';
+  
+  operateurs.forEach((op, index) => {
+    const item = document.createElement('div');
+    item.className = 'suggestion-item';
+    item.setAttribute('data-index', index);
+    
+    // Mettre en évidence le texte recherché
+    const nomHighlighted = highlightText(op.nom, searchText);
+    const saHighlighted = highlightText(op.sa, searchText);
+    
+    item.innerHTML = `
+      <span class="operateur-nom">${nomHighlighted}</span>
+      <span class="operateur-sa">(${saHighlighted})</span>
+      ${op.equipe ? `<span class="operateur-equipe">${op.equipe}</span>` : ''}
+    `;
+    
+    container.appendChild(item);
+  });
+}
+
+// Mettre en évidence le texte correspondant à la recherche
+function highlightText(text, searchText) {
+  if (!searchText) return text;
+  
+  const regex = new RegExp('(' + searchText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + ')', 'gi');
+  return text.replace(regex, '<span class="highlight">$1</span>');
+}
+
+// Mettre en évidence une suggestion lors de la navigation au clavier
+function highlightSuggestion(index, container) {
+  const items = container.querySelectorAll('.suggestion-item');
+  
+  items.forEach((item, i) => {
+    if (i === index) {
+      item.classList.add('active');
+      // Assurer la visibilité de l'élément sélectionné
+      item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
+// Sélectionner un opérateur
+function selectOperateur(index, operateurs, searchField, suggestionsContainer, saFieldId, operateurFieldId, equipeFieldId, posteFieldId) {
+  if (index < 0 || index >= operateurs.length) return;
+  
+  const operateur = operateurs[index];
+  console.log("Opérateur sélectionné:", operateur);
+  
+  // Mettre à jour le champ de recherche
+  searchField.value = operateur.nom;
+  
+  // Mettre à jour les champs cachés
+  document.getElementById(saFieldId).value = operateur.sa;
+  
+  // Mettre à jour le champ opérateur (visible ou caché)
+  const operateurField = document.getElementById(operateurFieldId);
+  if (operateurField) {
+    operateurField.value = operateur.nom;
+    console.log(`Champ ${operateurFieldId} mis à jour avec: ${operateur.nom}`);
+    
+    // Déclencher un événement de changement pour que d'autres scripts puissent réagir
+    operateurField.dispatchEvent(new Event('change'));
+    operateurField.dispatchEvent(new Event('input'));
+  }
+  
+  // Gérer l'équipe (peut être null pour l'onglet "même aléa/plusieurs opérateurs")
+  if (equipeFieldId) {
+    const equipeField = document.getElementById(equipeFieldId);
+    if (equipeField) {
+      equipeField.value = operateur.equipe || '';
+      console.log(`Champ ${equipeFieldId} mis à jour avec: ${operateur.equipe || ''}`);
+    }
+  } else if (operateurFieldId === 'add-op-name') {
+    // Cas spécial pour l'onglet "même aléa/plusieurs opérateurs"
+    operateurField.setAttribute('data-equipe', operateur.equipe || '');
+    console.log(`Attribut data-equipe mis à jour avec: ${operateur.equipe || ''}`);
+  }
+  
+  // Mettre à jour le poste si disponible
+  if (posteFieldId && operateur.poste) {
+    const posteSelect = document.getElementById(posteFieldId);
+    if (posteSelect) {
+      for (let i = 0; i < posteSelect.options.length; i++) {
+        if (posteSelect.options[i].value === operateur.poste) {
+          posteSelect.selectedIndex = i;
+          console.log(`Poste sélectionné: ${operateur.poste} (index ${i})`);
+          
+          // Déclencher un événement de changement
+          posteSelect.dispatchEvent(new Event('change'));
+          break;
+        }
+      }
+    }
+  }
+  
+  // NOUVEAU CODE: Mettre également à jour les champs visibles dans le formulaire standard
+  // Uniquement pour l'onglet standard (quand saFieldId est 'selected-sa')
+  if (saFieldId === 'selected-sa') {
+    // Mettre à jour le champ SA visible
+    const visibleSA = document.getElementById('sa');
+    if (visibleSA) {
+      visibleSA.value = operateur.sa;
+      console.log(`Champ visible 'sa' mis à jour avec: ${operateur.sa}`);
+    }
+    
+    // Mettre à jour le champ opérateur visible
+    const visibleOperateur = document.getElementById('operateur');
+    if (visibleOperateur) {
+      visibleOperateur.value = operateur.nom;
+      console.log(`Champ visible 'operateur' mis à jour avec: ${operateur.nom}`);
+    }
+    
+    // Mettre à jour le champ équipe visible
+    const visibleEquipe = document.getElementById('equipe');
+    if (visibleEquipe) {
+      visibleEquipe.value = operateur.equipe || '';
+      console.log(`Champ visible 'equipe' mis à jour avec: ${operateur.equipe || ''}`);
+    }
+  }
+  
+  // Même chose pour l'onglet multi-aléas
+  if (saFieldId === 'multi-selected-sa') {
+    const visibleSA = document.getElementById('multi-sa');
+    if (visibleSA) {
+      visibleSA.value = operateur.sa;
+      console.log(`Champ visible 'multi-sa' mis à jour avec: ${operateur.sa}`);
+    }
+    
+    const visibleOperateur = document.getElementById('multi-operateur');
+    if (visibleOperateur) {
+      visibleOperateur.value = operateur.nom;
+      console.log(`Champ visible 'multi-operateur' mis à jour avec: ${operateur.nom}`);
+    }
+    
+    const visibleEquipe = document.getElementById('multi-equipe');
+    if (visibleEquipe) {
+      visibleEquipe.value = operateur.equipe || '';
+      console.log(`Champ visible 'multi-equipe' mis à jour avec: ${operateur.equipe || ''}`);
+    }
+  }
+  
+  // CORRECTION: Mise à jour pour l'onglet multi-opérateurs
+  if (saFieldId === 'add-op-sa') {
+    // Synchroniser avec le champ visible du SA
+    const visibleSA = document.getElementById('add-op-sa');
+    if (visibleSA) {
+      visibleSA.value = operateur.sa;
+      console.log(`Champ visible 'add-op-sa' mis à jour avec: ${operateur.sa}`);
+    }
+    
+    // Synchroniser avec le champ visible du nom d'opérateur
+    const visibleName = document.getElementById('add-op-name');
+    if (visibleName) {
+      visibleName.value = operateur.nom;
+      console.log(`Champ visible 'add-op-name' mis à jour avec: ${operateur.nom}`);
+      // Stocker l'équipe dans l'attribut data-equipe
+      visibleName.setAttribute('data-equipe', operateur.equipe || '');
+      console.log(`Attribut data-equipe mis à jour avec: ${operateur.equipe || ''}`);
+    }
+    
+    // Mettre à jour le poste si disponible
+    if (operateur.poste) {
+      const posteSelect = document.getElementById('add-op-poste');
+      if (posteSelect) {
+        for (let i = 0; i < posteSelect.options.length; i++) {
+          if (posteSelect.options[i].value === operateur.poste) {
+            posteSelect.selectedIndex = i;
+            console.log(`Poste sélectionné: ${operateur.poste} (index ${i})`);
+            posteSelect.dispatchEvent(new Event('change'));
+            break;
+          }
+        }
+      }
+    }
+  }
+  
+  // Activer le bouton d'ajout dans l'onglet multi-opérateurs
+  if (operateurFieldId === 'add-op-name') {
+    const addOpButton = document.getElementById('btn-add-operator');
+    if (addOpButton) {
+      addOpButton.disabled = false;
+      addOpButton.classList.add('btn-shake');
+      setTimeout(() => {
+        addOpButton.classList.remove('btn-shake');
+      }, 800);
+    }
+  }
+  
+  // Cacher les suggestions
+  suggestionsContainer.style.display = 'none';
+  
+  // Notification
+  showDiscreteNotification(`Opérateur sélectionné : ${operateur.nom}`, "info");
+}
+
+function loadPostesForAllSelects() {
+  // Charger la liste des postes une seule fois puis la répliquer
+  google.script.run
+    .withSuccessHandler(function(response) {
+      if (response.success) {
+        // Filtrer et trier les postes
+        const filteredPostes = response.postes
+          .filter(poste => poste !== "RECU")
+          .sort();
+        
+        // Liste des sélecteurs à remplir
+        const posteSelectors = ['poste', 'multi-poste', 'add-op-poste'];
+        
+        // Remplir chaque sélecteur
+        posteSelectors.forEach(selector => {
+          const selectElement = document.getElementById(selector);
+          if (selectElement) {
+            selectElement.innerHTML = '<option value="" selected disabled>Sélectionnez un poste</option>';
             
             filteredPostes.forEach(function(poste) {
               const option = document.createElement('option');
               option.value = poste;
               option.textContent = poste;
-              posteSelect.appendChild(option);
+              selectElement.appendChild(option);
             });
-          } else {
-            console.warn("Impossible de charger la liste des postes:", response.message);
-            showStatusMessage("Impossible de charger la liste des postes. " + response.message, "warning");
           }
-        })
-        .withFailureHandler(function(error) {
-          console.error("Erreur lors du chargement des postes:", error);
-          showStatusMessage("Erreur lors du chargement des postes: " + error, "danger");
-        })
-        .getListePostes();
-    }
-    
-    function submitForm() {
-      // Vérifier que les champs obligatoires sont remplis
-      const requiredFields = ['sa', 'poste', 'date', 'type-alea', 'duree'];
-      let isValid = true;
-      
-      requiredFields.forEach(function(fieldId) {
-        const field = document.getElementById(fieldId);
-        if (!field.value.trim()) {
-          field.classList.add('is-invalid');
-          isValid = false;
-        } else {
-          field.classList.remove('is-invalid');
-        }
-      });
-      
-      // Validation spécifique pour la durée
-      const dureeField = document.getElementById('duree');
-      const dureeValue = parseFloat(dureeField.value);
-      if (isNaN(dureeValue) || dureeValue <= 0 || dureeValue > 24) {
-        dureeField.classList.add('is-invalid');
-        isValid = false;
-        showStatusMessage("La durée doit être un nombre positif entre 0.1 et 24 heures", "warning");
-        return;
+        });
+      } else {
+        console.warn("Impossible de charger la liste des postes:", response.message);
+        showStatusMessage("Impossible de charger la liste des postes. " + response.message, "warning");
       }
-      
-      if (!isValid) {
-        showStatusMessage("Veuillez remplir tous les champs obligatoires", "warning");
-        return;
-      }
-      
-      // Vérifier que l'opérateur a bien été trouvé
-      if (!document.getElementById('operateur').value) {
-        showStatusMessage("Veuillez rechercher un opérateur valide avec le numéro SA", "warning");
-        return;
-      }
-      
-      // Collecter les données du formulaire
-      const aleaData = {
-        operateur: document.getElementById('operateur').value,
-        sa: document.getElementById('sa').value,
-        equipe: document.getElementById('equipe').value,
-        poste: document.getElementById('poste').value,
-        date: document.getElementById('date').value,
-        typeAlea: document.getElementById('type-alea').value,
-        commentaire: document.getElementById('commentaire').value,
-        duree: document.getElementById('duree').value
-      };
-      
-      // Afficher le loader
-      showLoader(true);
-      
-      // Envoyer les données au serveur
-      google.script.run
-        .withSuccessHandler(function(response) {
-          showLoader(false);
-          
-          if (response.success) {
-            // Afficher le message de confirmation amélioré
-            showSuccessConfirmation(aleaData);
-            
-            // Afficher une notification toast en plus
-            const toast = document.createElement('div');
-            toast.className = 'position-fixed bottom-0 end-0 p-3';
-            toast.style.zIndex = '5';
-            toast.innerHTML = `
-              <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header bg-success text-white">
-                  <i class="fas fa-check-circle me-2"></i>
-                  <strong class="me-auto">Succès</strong>
-                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                  Aléa de type <strong>${aleaData.typeAlea}</strong> enregistré pour l'opérateur <strong>${aleaData.operateur}</strong>.
-                </div>
-              </div>
-            `;
-            document.body.appendChild(toast);
-            
-            // Supprimer le toast après 5 secondes
-            setTimeout(() => {
-              toast.remove();
-            }, 5000);
-            
-            resetForm(false); // Conserver certains champs
-          } else {
-            showStatusMessage(response.message, "danger");
-          }
-        })
-        .withFailureHandler(function(error) {
-          showLoader(false);
-          showStatusMessage("Erreur lors de l'enregistrement: " + error, "danger");
-        })
-        .saveAlea(aleaData);
-    }
+    })
+    .withFailureHandler(function(error) {
+      console.error("Erreur lors du chargement des postes:", error);
+      showStatusMessage("Erreur lors du chargement des postes: " + error, "danger");
+    })
+    .getListePostes();
+}
 
-    function loadTypesAleas() {
+function loadTypesAleasForAllSelects() {
   google.script.run
     .withSuccessHandler(function(response) {
       if (response.success) {
-        const typeAleaSelect = document.getElementById('type-alea');
-        typeAleaSelect.innerHTML = '<option value="" selected disabled>Sélectionnez un type d\'aléa</option>';
+        // Liste des sélecteurs à remplir
+        const aleaSelectors = ['type-alea', 'multi-type-alea', 'shared-type-alea'];
         
-        response.types.forEach(function(type) {
-          const option = document.createElement('option');
-          option.value = type;
-          option.textContent = type;
-          typeAleaSelect.appendChild(option);
+        // Remplir chaque sélecteur
+        aleaSelectors.forEach(selector => {
+          const selectElement = document.getElementById(selector);
+          if (selectElement) {
+            selectElement.innerHTML = '<option value="" selected disabled>Sélectionnez un type d\'aléa</option>';
+            
+            response.types.forEach(function(type) {
+              const option = document.createElement('option');
+              option.value = type;
+              option.textContent = type;
+              selectElement.appendChild(option);
+            });
+          }
         });
       } else {
         console.warn("Impossible de charger la liste des types d'aléas:", response.message);
@@ -662,164 +1520,1001 @@
     })
     .getTypesAleas();
 }
-    
-    function showSuccessConfirmation(aleaData) {
-      // Créer un message de confirmation détaillé
-      const successDiv = document.getElementById('success-confirmation');
-      const messageSpan = document.getElementById('success-message');
-      
-      // Formater la date pour l'affichage
-      const dateParts = aleaData.date.split('-');
-      const dateFormatted = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-      
-      // Message personnalisé avec les détails
-      messageSpan.innerHTML = `
-        <div class="card border-0 bg-light mt-2">
-          <div class="card-body p-3">
-            <div class="row">
-              <div class="col-md-6">
-                <p class="mb-1"><strong>Opérateur:</strong> ${aleaData.operateur}</p>
-                <p class="mb-1"><strong>Équipe:</strong> ${aleaData.equipe || 'Non spécifiée'}</p>
-                <p class="mb-1"><strong>Poste:</strong> ${aleaData.poste}</p>
-              </div>
-              <div class="col-md-6">
-                <p class="mb-1"><strong>Date:</strong> ${dateFormatted}</p>
-                <p class="mb-1"><strong>Type d'aléa:</strong> ${aleaData.typeAlea}</p>
-                <p class="mb-1"><strong>Durée:</strong> ${aleaData.duree}h</p>
-              </div>
-            </div>
-            ${aleaData.commentaire ? `<p class="mt-2 mb-0"><strong>Commentaire:</strong> ${aleaData.commentaire}</p>` : ''}
-          </div>
-        </div>
-        <div class="text-center mt-3">
-          <span class="badge bg-success p-2">Enregistrement réussi dans la feuille de calcul</span>
-        </div>
-      `;
-      
-      // Jouer un son de notification (optionnel)
-      try {
-        const audio = new Audio('https://cdn.jsdelivr.net/gh/rafaelp/rphook/lib/media/status.mp3');
-        audio.volume = 0.5;
-        audio.play();
-      } catch (e) {
-        console.log('Son de notification non disponible');
+
+// Améliorations pour la fonction fetchOperateurInfo
+function fetchOperateurInfo(saFieldId, operateurFieldId, equipeFieldId, posteFieldId, buttonId, enableAddButton = false) {
+  const saField = document.getElementById(saFieldId);
+  const sa = saField?.value.trim();
+  
+  if (!sa) {
+    showDiscreteNotification("Veuillez saisir un numéro SA", "warning");
+    return;
+  }
+  
+  // Indiquer que la recherche est en cours
+  const searchButton = document.getElementById(buttonId);
+  if (searchButton) {
+    searchButton.disabled = true;
+    searchButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+  }
+  
+  google.script.run
+    .withSuccessHandler(function(response) {
+      // Restaurer l'interface
+      if (searchButton) {
+        searchButton.disabled = false;
+        searchButton.innerHTML = '<i class="fas fa-search"></i>';
       }
       
-      // Afficher le message de confirmation sans faire défiler la page
-      successDiv.classList.remove('d-none');
-      successDiv.classList.add('success-message');
-      
-      // Ne pas faire défiler jusqu'au message automatiquement
-      // successDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      
-      // Masquer après un délai
-      setTimeout(function() {
-        successDiv.classList.add('d-none');
-        successDiv.classList.remove('success-message');
-      }, 10000);
-    }
-    
-    function resetForm(complete = true) {
-      // Si réinitialisation complète, vider tous les champs
-      if (complete) {
-        document.getElementById('sa').value = '';
-        document.getElementById('operateur').value = '';
-        document.getElementById('equipe').value = '';
-      }
-      
-      // Toujours réinitialiser ces champs
-      document.getElementById('poste').selectedIndex = 0;
-      document.getElementById('type-alea').selectedIndex = 0;
-      document.getElementById('commentaire').value = '';
-      document.getElementById('duree').value = '';
-      
-      // Remettre la date du jour
-      const today = new Date();
-      document.getElementById('date').value = formatDateForInput(today);
-      
-      // Supprimer les classes d'invalidation
-      document.querySelectorAll('.is-invalid').forEach(function(field) {
-        field.classList.remove('is-invalid');
-      });
-      
-      // Masquer les messages
-      document.getElementById('status-message').style.display = 'none';
-      document.getElementById('success-confirmation').classList.add('d-none');
-    }
-    
-    function showStatusMessage(message, type) {
-      const statusElement = document.getElementById('status-message');
-      statusElement.textContent = message;
-      statusElement.className = `alert alert-${type} mb-4`;
-      statusElement.style.display = 'block';
-      
-      // Ne pas faire de scrolling automatique pour éviter de déplacer la page
-      // statusElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      
-      // Faire disparaître le message après un délai (sauf pour les erreurs)
-      if (type !== 'danger') {
-        setTimeout(function() {
-          statusElement.style.display = 'none';
-        }, 5000);
-      }
-    }
-    
-    // Nouvelle fonction pour afficher une notification discrète qui ne fait pas bouger la page
-    function showDiscreteNotification(message, type) {
-      // Créer ou réutiliser un élément de notification flottant
-      let notifContainer = document.getElementById('discrete-notification');
-      
-      if (!notifContainer) {
-        notifContainer = document.createElement('div');
-        notifContainer.id = 'discrete-notification';
-        notifContainer.className = 'position-fixed top-0 end-0 p-3';
-        notifContainer.style.zIndex = '5';
-        document.body.appendChild(notifContainer);
-      }
-      
-      // Générer un ID unique pour cette notification
-      const notifId = 'toast-' + Date.now();
-      
-      // Créer le contenu de la notification
-      const toastHTML = `
-        <div id="${notifId}" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-          <div class="toast-header ${type === 'info' ? 'bg-info' : type === 'warning' ? 'bg-warning' : type === 'danger' ? 'bg-danger' : 'bg-success'} ${type === 'warning' ? 'text-dark' : 'text-white'}">
-            <i class="fas ${type === 'info' ? 'fa-info-circle' : type === 'warning' ? 'fa-exclamation-triangle' : type === 'danger' ? 'fa-exclamation-circle' : 'fa-check-circle'} me-2"></i>
-            <strong class="me-auto">${type === 'info' ? 'Information' : type === 'warning' ? 'Attention' : type === 'danger' ? 'Erreur' : 'Succès'}</strong>
-            <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('${notifId}').remove()" aria-label="Close"></button>
-          </div>
-          <div class="toast-body">
-            ${message}
-          </div>
-        </div>
-      `;
-      
-      // Ajouter la notification au conteneur
-      const toastElement = document.createElement('div');
-      toastElement.innerHTML = toastHTML;
-      notifContainer.appendChild(toastElement.firstElementChild);
-      
-      // Supprimer automatiquement après un délai
-      setTimeout(() => {
-        const notification = document.getElementById(notifId);
-        if (notification) {
-          notification.classList.remove('show');
-          setTimeout(() => notification.remove(), 500);
+      if (response.success) {
+        // Remplir les champs avec les données récupérées
+        const operateurField = document.getElementById(operateurFieldId);
+        if (operateurField) {
+          operateurField.value = response.operateur;
+          // Déclencher l'événement input pour le champ opérateur (pour activer le bouton d'ajout)
+          if (enableAddButton) {
+            operateurField.dispatchEvent(new Event('input'));
+          }
         }
-      }, 4000);
+        
+        // Remplir le champ équipe s'il existe
+        if (equipeFieldId) {
+          const equipeField = document.getElementById(equipeFieldId);
+          if (equipeField) equipeField.value = response.equipe || '';
+        }
+        
+        // Même si equipeFieldId n'existe pas, nous stockons l'équipe dans un attribut data 
+        // pour l'utiliser plus tard (cas du mode "même aléa/plusieurs opérateurs")
+        if (enableAddButton) {
+          const addOpNameField = document.getElementById('add-op-name');
+          if (addOpNameField) {
+            addOpNameField.setAttribute('data-equipe', response.equipe || '');
+          }
+        }
+        
+        // Sélectionner le poste habituel s'il est disponible
+        if (response.poste && posteFieldId) {
+          const posteSelect = document.getElementById(posteFieldId);
+          if (posteSelect) {
+            for (let i = 0; i < posteSelect.options.length; i++) {
+              if (posteSelect.options[i].value === response.poste) {
+                posteSelect.selectedIndex = i;
+                break;
+              }
+            }
+          }
+        }
+        
+        // NEW: Synchronisation spécifique pour l'onglet "plusieurs aléas / opérateur"
+        if (saFieldId === 'multi-sa') {
+          // Mettre également à jour les champs cachés
+          document.getElementById('multi-selected-sa').value = sa;
+          document.getElementById('multi-selected-operateur').value = response.operateur;
+          document.getElementById('multi-selected-equipe').value = response.equipe || '';
+        }
+        
+        // NEW: Synchronisation spécifique pour l'onglet "même aléa / plusieurs opérateurs"
+        if (saFieldId === 'add-op-sa') {
+          // Mettre à jour le champ caché add-op-sa
+          const hiddenSa = document.getElementById('add-op-sa');
+          if (hiddenSa) hiddenSa.value = sa;
+          
+          // Activer le bouton d'ajout
+          const addButton = document.getElementById('btn-add-operator');
+          if (addButton) {
+            addButton.disabled = false;
+            // Animation pour attirer l'attention
+            addButton.classList.add('btn-shake');
+            setTimeout(() => {
+              addButton.classList.remove('btn-shake');
+            }, 800);
+          }
+        }
+        
+        // Notification de succès
+        showDiscreteNotification("Informations récupérées pour " + response.operateur, "info");
+      } else {
+        // Notification d'erreur
+        showDiscreteNotification(response.message, "warning");
+        
+        // Vider les champs
+        document.getElementById(operateurFieldId).value = '';
+        if (equipeFieldId) {
+          const equipeField = document.getElementById(equipeFieldId);
+          if (equipeField) equipeField.value = '';
+        }
+        
+        // Désactiver le bouton d'ajout en mode multi-opérateurs
+        if (enableAddButton) {
+          const addButton = document.getElementById('btn-add-operator');
+          if (addButton) addButton.disabled = true;
+        }
+      }
+    })
+    .withFailureHandler(function(error) {
+      // Restaurer l'interface
+      if (searchButton) {
+        searchButton.disabled = false;
+        searchButton.innerHTML = '<i class="fas fa-search"></i>';
+      }
+      
+      showDiscreteNotification("Erreur: " + error, "danger");
+    })
+    .getOperateurInfoBySA(sa);
+}
+
+
+// ===== FONCTIONS POUR LE MODE MULTI-ALÉAS =====
+
+function addAleaToList() {
+  // Vérifier qu'un opérateur est sélectionné
+  const operateur = document.getElementById('multi-selected-operateur').value;
+  if (!operateur) {
+    showDiscreteNotification("Veuillez d'abord sélectionner un opérateur", "warning");
+    return;
+  }
+  
+  // Vérifier tous les champs obligatoires
+  const sa = document.getElementById('multi-selected-sa').value.trim();
+  const equipe = document.getElementById('multi-selected-equipe').value;
+  const posteSelect = document.getElementById('multi-poste');
+  const poste = posteSelect.options[posteSelect.selectedIndex]?.value;
+  const date = document.getElementById('multi-date').value;
+  const typeAleaSelect = document.getElementById('multi-type-alea');
+  const typeAlea = typeAleaSelect.options[typeAleaSelect.selectedIndex]?.value;
+  const duree = document.getElementById('multi-duree').value;
+  const commentaire = document.getElementById('multi-commentaire').value;
+  
+  // Validation
+  if (!poste || !date || !typeAlea || !duree) {
+    showDiscreteNotification("Veuillez remplir tous les champs obligatoires", "warning");
+    return;
+  }
+  
+  // Validation spécifique pour la durée
+  const dureeValue = parseFloat(duree);
+  if (isNaN(dureeValue) || dureeValue <= 0 || dureeValue > 24) {
+    showDiscreteNotification("La durée doit être un nombre positif entre 0.1 et 24 heures", "warning");
+    return;
+  }
+  
+  // Créer l'objet aléa
+  const aleaItem = {
+    id: Date.now(), // ID unique pour identifier l'aléa dans la liste
+    operateur,
+    sa,
+    equipe,
+    poste,
+    date,
+    typeAlea,
+    duree,
+    commentaire
+  };
+  
+  console.log("Aléa ajouté à la liste:", aleaItem);
+  
+  // Ajouter à la liste
+  multiAleasList.push(aleaItem);
+  
+  // Mettre à jour l'affichage
+  renderAleasList();
+  
+  // Mise à jour du compteur
+  updateMultiAleasCounter();
+  
+  // Notification
+  showDiscreteNotification(`Aléa "${typeAlea}" ajouté à la liste`, "success");
+  
+  // Réinitialiser uniquement les champs de l'aléa pour faciliter la saisie multiple
+  resetMultiAleaForm();
+}
+
+function renderAleasList() {
+  const listContainer = document.getElementById('multi-aleas-list');
+  const emptyMessage = document.getElementById('empty-aleas-message');
+  const saveButton = document.getElementById('btn-save-multi-aleas');
+  
+  if (!listContainer) return;
+  
+  // Afficher/masquer le message "vide"
+  if (emptyMessage) {
+    emptyMessage.style.display = multiAleasList.length === 0 ? 'block' : 'none';
+  }
+  
+  // Activer/désactiver le bouton d'enregistrement
+  if (saveButton) {
+    saveButton.disabled = multiAleasList.length === 0;
+  }
+  
+  // CORRECTION : Vider complètement la liste avant de la regénérer
+  // On utilise innerHTML pour tout effacer sauf le message vide
+  const tempContent = emptyMessage ? emptyMessage.outerHTML : '';
+  listContainer.innerHTML = tempContent;
+  
+  // Générer la nouvelle liste
+  multiAleasList.forEach((alea, index) => {
+    // Formater la date pour l'affichage
+    const dateParts = alea.date.split('-');
+    const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+    
+    const aleaElement = document.createElement('div');
+    aleaElement.className = 'card alea-item mb-2';
+    aleaElement.innerHTML = `
+      <div class="card-body py-2 px-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="badge bg-info me-2">${formattedDate}</span>
+            <strong>${alea.typeAlea}</strong> - 
+            <span>${alea.duree}h</span>
+            ${alea.commentaire ? `<small class="text-muted ms-2">${alea.commentaire}</small>` : ''}
+          </div>
+          <div>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-alea-btn" data-alea-id="${alea.id}">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    listContainer.appendChild(aleaElement);
+  });
+  
+  // CORRECTION : Ajouter les écouteurs d'événements après avoir créé les éléments
+  document.querySelectorAll('.remove-alea-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const aleaId = parseInt(this.getAttribute('data-alea-id'));
+      removeAleaFromList(aleaId);
+    });
+  });
+  
+  // Mettre à jour le compteur affiché
+  const countElement = document.getElementById('multi-aleas-count');
+  if (countElement) {
+    countElement.textContent = `${multiAleasList.length} aléa(s)`;
+  }
+}
+
+function removeAleaFromList(aleaId) {
+  console.log("Tentative de suppression de l'aléa ID:", aleaId);
+  
+  // Trouver l'index de l'aléa à supprimer
+  const aleaIndex = multiAleasList.findIndex(alea => alea.id === aleaId);
+  
+  if (aleaIndex !== -1) {
+    // Récupérer les infos pour la notification
+    const alea = multiAleasList[aleaIndex];
+    
+    // Supprimer de la liste
+    multiAleasList.splice(aleaIndex, 1);
+    
+    // Mettre à jour l'affichage
+    renderAleasList();
+    
+    // Mise à jour du compteur
+    updateMultiAleasCounter();
+    
+    // Notification
+    showDiscreteNotification(`Aléa "${alea.typeAlea}" retiré de la liste`, "info");
+  } else {
+    console.error("Impossible de trouver l'aléa avec l'ID:", aleaId);
+  }
+}
+
+
+function updateMultiAleasCounter() {
+  // Mettre à jour le compteur dans l'onglet
+  const counter = document.getElementById('multi-aleas-counter');
+  if (counter) {
+    if (multiAleasList.length > 0) {
+      counter.textContent = multiAleasList.length;
+      counter.style.display = 'inline-block';
+    } else {
+      counter.style.display = 'none';
+    }
+  }
+}
+
+function resetMultiAleaForm() {
+  // Réinitialiser uniquement les champs de l'aléa (pas les infos opérateur)
+  document.getElementById('multi-type-alea').selectedIndex = 0;
+  document.getElementById('multi-commentaire').value = '';
+  document.getElementById('multi-duree').value = '';
+  
+  // Remettre le focus sur le type d'aléa
+  document.getElementById('multi-type-alea').focus();
+}
+
+function saveMultipleAleas() {
+  if (multiAleasList.length === 0) {
+    showDiscreteNotification("Aucun aléa à enregistrer", "warning");
+    return;
+  }
+  
+  // Afficher le loader avec message personnalisé
+  showLoader(true, `Enregistrement de ${multiAleasList.length} aléas...`);
+  
+  // Créer une copie profonde de la liste des aléas pour éviter les problèmes de référence
+  const aleasToProcess = JSON.parse(JSON.stringify(multiAleasList));
+  
+  // Compteur pour suivre les enregistrements
+  let successCount = 0;
+  let failCount = 0;
+  let processedCount = 0;
+  
+  // Enregistrer chaque aléa séquentiellement
+  function processNextAlea(index) {
+    // Vérifier si tous les aléas ont été traités
+    if (index >= aleasToProcess.length) {
+      // Tous les aléas ont été traités
+      showLoader(false);
+      
+      // Message de résultat
+      if (failCount === 0) {
+        showStatusMessage(`Tous les ${successCount} aléas ont été enregistrés avec succès.`, "success");
+      } else {
+        showStatusMessage(`${successCount} aléas enregistrés, ${failCount} échecs.`, failCount > successCount ? "danger" : "warning");
+      }
+      
+      // Si au moins un aléa a été enregistré avec succès, réinitialiser la liste
+      if (successCount > 0) {
+        // Vider complètement la liste après enregistrement réussi
+        multiAleasList = [];
+        renderAleasList();
+        updateMultiAleasCounter();
+      }
+      
+      return;
     }
     
-    function showLoader(show) {
-      document.getElementById('loader').style.display = show ? 'flex' : 'none';
-      document.getElementById('alea-form').style.display = show ? 'none' : 'block';
+    const alea = aleasToProcess[index];
+    
+    // Mettre à jour le message du loader
+    document.getElementById('loader-text').textContent = `Enregistrement de l'aléa ${index + 1}/${aleasToProcess.length}...`;
+    
+    // Debug: afficher l'aléa en cours de traitement
+    console.log(`Traitement de l'aléa ${index + 1}:`, alea);
+    
+    google.script.run
+      .withSuccessHandler(function(response) {
+        processedCount++;
+        
+        if (response.success) {
+          successCount++;
+          console.log(`Aléa ${index + 1} enregistré avec succès`);
+        } else {
+          failCount++;
+          console.error(`Échec de l'enregistrement de l'aléa ${index + 1}:`, response.message);
+        }
+        
+        // Traiter l'aléa suivant
+        processNextAlea(index + 1);
+      })
+      .withFailureHandler(function(error) {
+        processedCount++;
+        failCount++;
+        console.error(`Erreur lors de l'enregistrement de l'aléa ${index + 1}:`, error);
+        
+        // Traiter l'aléa suivant malgré l'erreur
+        processNextAlea(index + 1);
+      })
+      .saveAlea(alea);
+  }
+  
+  // Commencer le traitement avec le premier aléa
+  processNextAlea(0);
+}
+
+// ===== FONCTIONS POUR LE MODE MULTI-OPÉRATEURS =====
+
+function addOperatorToList() {
+  // Vérifier les champs obligatoires
+  const sa = document.getElementById('add-op-sa').value.trim();
+  const operateurField = document.getElementById('add-op-name');
+  const operateur = operateurField.value;
+  const equipe = operateurField.getAttribute('data-equipe') || ''; // Récupérer l'équipe stockée
+  const posteSelect = document.getElementById('add-op-poste');
+  const poste = posteSelect.options[posteSelect.selectedIndex]?.value;
+  
+  if (!sa || !operateur || !poste) {
+    showDiscreteNotification("Veuillez remplir tous les champs obligatoires", "warning");
+    return;
+  }
+  
+  // Vérifier si l'opérateur est déjà dans la liste
+  const isDuplicate = selectedOperators.some(op => op.sa === sa);
+  if (isDuplicate) {
+    showDiscreteNotification(`L'opérateur avec le SA ${sa} est déjà dans la liste`, "warning");
+    return;
+  }
+  
+  // Créer l'objet opérateur avec l'équipe
+  const operatorItem = {
+    id: Date.now(), // ID unique pour identifier l'opérateur
+    sa,
+    operateur,
+    equipe, // Ajout de l'équipe
+    poste
+  };
+  
+  console.log("Ajout de l'opérateur:", operatorItem);
+  
+  // Ajouter à la liste
+  selectedOperators.push(operatorItem);
+  
+  // Mettre à jour l'affichage
+  renderOperatorsList();
+  
+  // Mise à jour du compteur
+  updateMultiOperatorsCounter();
+  
+  // Notification
+  showDiscreteNotification(`${operateur} ajouté à la liste`, "success");
+  
+  // Réinitialiser les champs pour faciliter la saisie du prochain opérateur
+  resetAddOperatorForm();
+}
+
+
+function renderOperatorsList() {
+  const container = document.getElementById('selected-operators-container');
+  const emptyMessage = document.getElementById('empty-operators-message');
+  const saveButton = document.getElementById('btn-save-multi-operators');
+  
+  if (!container) return;
+  
+  // Afficher/masquer le message "vide"
+  if (emptyMessage) {
+    emptyMessage.style.display = selectedOperators.length === 0 ? 'block' : 'none';
+  }
+  
+  // Activer/désactiver le bouton d'enregistrement
+  if (saveButton) {
+    saveButton.disabled = selectedOperators.length === 0;
+  }
+  
+  // Vider complètement le conteneur avant de le regénérer
+  // On conserve uniquement le message vide
+  const tempContent = emptyMessage ? emptyMessage.outerHTML : '';
+  container.innerHTML = tempContent;
+  
+  // Afficher les opérateurs sélectionnés
+  if (selectedOperators.length > 0) {
+    const listElement = document.createElement('div');
+    listElement.className = 'mb-3 d-flex flex-wrap gap-2';
+    
+    selectedOperators.forEach(op => {
+      const operatorBadge = document.createElement('div');
+      operatorBadge.className = 'selected-operator';
+      operatorBadge.innerHTML = `
+        <div class="d-flex align-items-center">
+          <span class="badge bg-primary me-2">${op.sa}</span>
+          <span class="me-2">${op.operateur}</span>
+          ${op.equipe ? `<span class="badge bg-secondary me-2">${op.equipe}</span>` : ''}
+          <small class="text-muted">(${op.poste})</small>
+          <button type="button" class="btn btn-sm text-danger ms-2 remove-op-btn" data-op-id="${op.id}">
+            <i class="fas fa-times-circle"></i>
+          </button>
+        </div>
+      `;
+      
+      listElement.appendChild(operatorBadge);
+    });
+    
+    container.appendChild(listElement);
+    
+    // Ajouter les écouteurs d'événements après avoir créé les éléments
+    document.querySelectorAll('.remove-op-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const opId = parseInt(this.getAttribute('data-op-id'));
+        removeOperatorFromList(opId);
+      });
+    });
+  }
+  
+  // Mettre à jour le compteur affiché
+  const countElement = document.getElementById('multi-op-count');
+  if (countElement) {
+    countElement.textContent = `${selectedOperators.length} opérateur(s)`;
+  }
+}
+
+function removeOperatorFromList(opId) {
+  console.log("Tentative de suppression de l'opérateur ID:", opId);
+  
+  // Trouver l'index de l'opérateur à supprimer
+  const opIndex = selectedOperators.findIndex(op => op.id === opId);
+  
+  if (opIndex !== -1) {
+    // Récupérer les infos pour la notification
+    const op = selectedOperators[opIndex];
+    
+    // Supprimer de la liste
+    selectedOperators.splice(opIndex, 1);
+    
+    // Mettre à jour l'affichage
+    renderOperatorsList();
+    
+    // Mise à jour du compteur
+    updateMultiOperatorsCounter();
+    
+    // Notification
+    showDiscreteNotification(`${op.operateur} retiré de la liste`, "info");
+  } else {
+    console.error("Impossible de trouver l'opérateur avec l'ID:", opId);
+  }
+}
+
+function clearOperatorsList() {
+  if (selectedOperators.length === 0) return;
+  
+  // Confirmation avant suppression
+  if (confirm(`Êtes-vous sûr de vouloir vider la liste des ${selectedOperators.length} opérateurs ?`)) {
+    // Vider complètement la liste
+    selectedOperators = [];
+    
+    // Mettre à jour l'affichage
+    renderOperatorsList();
+    
+    // Mise à jour du compteur
+    updateMultiOperatorsCounter();
+    
+    // Notification
+    showDiscreteNotification("Liste des opérateurs vidée", "info");
+  }
+}
+
+function clearAleasList() {
+  if (multiAleasList.length === 0) return;
+  
+  // Confirmation avant suppression
+  if (confirm(`Êtes-vous sûr de vouloir vider la liste des ${multiAleasList.length} aléas ?`)) {
+    // Vider complètement la liste
+    multiAleasList = [];
+    
+    // Mettre à jour l'affichage
+    renderAleasList();
+    
+    // Mise à jour du compteur
+    updateMultiAleasCounter();
+    
+    // Notification
+    showDiscreteNotification("Liste des aléas vidée", "info");
+  }
+}
+
+function updateMultiOperatorsCounter() {
+  // Mettre à jour le compteur dans l'onglet
+  const counter = document.getElementById('multi-op-counter');
+  if (counter) {
+    if (selectedOperators.length > 0) {
+      counter.textContent = selectedOperators.length;
+      counter.style.display = 'inline-block';
+    } else {
+      counter.style.display = 'none';
+    }
+  }
+}
+
+function resetAddOperatorForm() {
+  document.getElementById('add-op-sa').value = '';
+  document.getElementById('add-op-name').value = '';
+  document.getElementById('add-op-poste').selectedIndex = 0;
+  document.getElementById('btn-add-operator').disabled = true;
+  
+  // Mettre le focus sur le champ SA
+  document.getElementById('add-op-sa').focus();
+}
+
+function saveAleaForMultipleOperators() {
+  if (selectedOperators.length === 0) {
+    showDiscreteNotification("Aucun opérateur sélectionné", "warning");
+    return;
+  }
+  
+  // Vérifier les détails de l'aléa
+  const date = document.getElementById('shared-date').value;
+  const typeAleaSelect = document.getElementById('shared-type-alea');
+  const typeAlea = typeAleaSelect.options[typeAleaSelect.selectedIndex]?.value;
+  const duree = document.getElementById('shared-duree').value;
+  const commentaire = document.getElementById('shared-commentaire').value;
+  
+  // Validation
+  if (!date || !typeAlea || !duree) {
+    showDiscreteNotification("Veuillez remplir tous les détails de l'aléa", "warning");
+    return;
+  }
+  
+  // Validation spécifique pour la durée
+  const dureeValue = parseFloat(duree);
+  if (isNaN(dureeValue) || dureeValue <= 0 || dureeValue > 24) {
+    showDiscreteNotification("La durée doit être un nombre positif entre 0.1 et 24 heures", "warning");
+    return;
+  }
+  
+  // Afficher le loader avec message personnalisé
+  showLoader(true, `Enregistrement pour ${selectedOperators.length} opérateurs...`);
+  
+  // Créer une copie profonde de la liste des opérateurs pour éviter les problèmes de référence
+  const operatorsToProcess = JSON.parse(JSON.stringify(selectedOperators));
+  
+  // Compteur pour suivre les enregistrements
+  let successCount = 0;
+  let failCount = 0;
+  let processedCount = 0;
+  
+  // Enregistrer l'aléa pour chaque opérateur séquentiellement
+  function processNextOperator(index) {
+    // Vérifier si tous les opérateurs ont été traités
+    if (index >= operatorsToProcess.length) {
+      // Tous les opérateurs ont été traités
+      showLoader(false);
+      
+      // Message de résultat
+      if (failCount === 0) {
+        showStatusMessage(`L'aléa a été enregistré avec succès pour les ${successCount} opérateurs.`, "success");
+      } else {
+        showStatusMessage(`Aléa enregistré pour ${successCount} opérateurs, ${failCount} échecs.`, failCount > successCount ? "danger" : "warning");
+      }
+      
+      // Si au moins un opérateur a été traité avec succès
+      if (successCount > 0) {
+        // Vider la liste des opérateurs après succès
+        selectedOperators = [];
+        renderOperatorsList();
+        updateMultiOperatorsCounter();
+        
+        // Réinitialiser les champs d'aléa si tout est OK
+        if (failCount === 0) {
+          document.getElementById('shared-type-alea').selectedIndex = 0;
+          document.getElementById('shared-commentaire').value = '';
+          document.getElementById('shared-duree').value = '';
+        }
+      }
+      
+      return;
     }
     
-    function formatDateForInput(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
+    const operator = operatorsToProcess[index];
+    
+    // Créer l'objet aléa avec l'équipe de l'opérateur
+    const aleaData = {
+      operateur: operator.operateur,
+      sa: operator.sa,
+      poste: operator.poste,
+      date: date,
+      typeAlea: typeAlea,
+      duree: duree,
+      commentaire: commentaire,
+      equipe: operator.equipe || '' // Utiliser l'équipe stockée pour l'opérateur
+    };
+    
+    // Debug: afficher l'aléa en cours de traitement
+    console.log(`Traitement de l'aléa pour l'opérateur ${index + 1}/${operatorsToProcess.length}:`, aleaData);
+    
+    // Mettre à jour le message du loader
+    document.getElementById('loader-text').textContent = `Enregistrement pour l'opérateur ${index + 1}/${operatorsToProcess.length}...`;
+    
+    google.script.run
+      .withSuccessHandler(function(response) {
+        processedCount++;
+        
+        if (response.success) {
+          successCount++;
+          console.log(`Aléa enregistré avec succès pour l'opérateur ${operator.operateur}`);
+        } else {
+          failCount++;
+          console.error(`Échec de l'enregistrement pour l'opérateur ${operator.operateur}:`, response.message);
+        }
+        
+        // Traiter l'opérateur suivant
+        processNextOperator(index + 1);
+      })
+      .withFailureHandler(function(error) {
+        processedCount++;
+        failCount++;
+        console.error(`Erreur lors de l'enregistrement pour l'opérateur ${operator.operateur}:`, error);
+        
+        // Traiter l'opérateur suivant malgré l'erreur
+        processNextOperator(index + 1);
+      })
+      .saveAlea(aleaData);
+  }
+  
+  // Commencer le traitement avec le premier opérateur
+  processNextOperator(0);
+}
+
+// ===== FONCTIONS STANDARD (EXISTANTES REFACTORISÉES) =====
+
+function submitStandardForm() {
+  // Vérifier que les champs obligatoires sont remplis
+  const requiredFields = ['sa', 'poste', 'date', 'type-alea', 'duree'];
+  let isValid = true;
+  
+  requiredFields.forEach(function(fieldId) {
+    const field = document.getElementById(fieldId);
+    if (!field || !field.value.trim()) {
+      if (field) field.classList.add('is-invalid');
+      isValid = false;
+    } else {
+      if (field) field.classList.remove('is-invalid');
     }
-  </script>
+  });
+  
+  // Validation spécifique pour la durée
+  const dureeField = document.getElementById('duree');
+  const dureeValue = parseFloat(dureeField.value);
+  if (isNaN(dureeValue) || dureeValue <= 0 || dureeValue > 24) {
+    dureeField.classList.add('is-invalid');
+    isValid = false;
+    showStatusMessage("La durée doit être un nombre positif entre 0.1 et 24 heures", "warning");
+    return;
+  }
+  
+  if (!isValid) {
+    showStatusMessage("Veuillez remplir tous les champs obligatoires", "warning");
+    return;
+  }
+  
+  // Vérifier que l'opérateur a bien été trouvé
+  if (!document.getElementById('operateur').value) {
+    showStatusMessage("Veuillez rechercher un opérateur valide", "warning");
+    return;
+  }
+  
+  // Collecter les données du formulaire
+  const aleaData = {
+    operateur: document.getElementById('operateur').value,
+    sa: document.getElementById('sa').value,
+    equipe: document.getElementById('equipe').value,
+    poste: document.getElementById('poste').value,
+    date: document.getElementById('date').value,
+    typeAlea: document.getElementById('type-alea').value,
+    commentaire: document.getElementById('commentaire').value,
+    duree: document.getElementById('duree').value
+  };
+  
+  console.log("Données de l'aléa à enregistrer:", aleaData);
+  
+  // Afficher le loader
+  showLoader(true);
+  
+  // Envoyer les données au serveur
+  google.script.run
+    .withSuccessHandler(function(response) {
+      showLoader(false);
+      
+      if (response.success) {
+        // Afficher le message de confirmation amélioré
+        showSuccessConfirmation(aleaData);
+        
+        // Afficher une notification toast en plus
+        showSuccessToast(aleaData);
+        
+        resetStandardForm(false); // Conserver certains champs
+      } else {
+        showStatusMessage(response.message, "danger");
+      }
+    })
+    .withFailureHandler(function(error) {
+      showLoader(false);
+      showStatusMessage("Erreur lors de l'enregistrement: " + error, "danger");
+    })
+    .saveAlea(aleaData);
+}
+
+function resetStandardForm(complete = true) {
+  // Si réinitialisation complète, vider tous les champs
+  if (complete) {
+    // Réinitialiser les champs de recherche
+    document.getElementById('operateur-search').value = '';
+    document.getElementById('sa').value = '';
+    document.getElementById('operateur').value = '';
+    document.getElementById('equipe').value = '';
+    
+    // Réinitialiser aussi les champs cachés
+    document.getElementById('selected-sa').value = '';
+    document.getElementById('selected-operateur').value = '';
+    document.getElementById('selected-equipe').value = '';
+  }
+  
+  // Toujours réinitialiser ces champs
+  document.getElementById('poste').selectedIndex = 0;
+  document.getElementById('type-alea').selectedIndex = 0;
+  document.getElementById('commentaire').value = '';
+  document.getElementById('duree').value = '';
+  
+  // Remettre la date du jour
+  const today = new Date();
+  document.getElementById('date').value = formatDateForInput(today);
+  
+  // Supprimer les classes d'invalidation
+  document.querySelectorAll('.is-invalid').forEach(function(field) {
+    field.classList.remove('is-invalid');
+  });
+  
+  // Masquer les messages
+  document.getElementById('status-message').style.display = 'none';
+  document.getElementById('success-confirmation').classList.add('d-none');
+}
+
+
+function showSuccessToast(aleaData) {
+  const toast = document.createElement('div');
+  toast.className = 'position-fixed bottom-0 end-0 p-3';
+  toast.style.zIndex = '5';
+  toast.innerHTML = `
+    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header bg-success text-white">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong class="me-auto">Succès</strong>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        Aléa de type <strong>${aleaData.typeAlea}</strong> enregistré pour l'opérateur <strong>${aleaData.operateur}</strong>.
+      </div>
+    </div>
+  `;
+  document.body.appendChild(toast);
+  
+  // Supprimer le toast après 5 secondes
+  setTimeout(() => {
+    toast.remove();
+  }, 5000);
+}
+
+// ===== FONCTIONS UTILITAIRES =====
+
+function showSuccessConfirmation(aleaData) {
+  // Créer un message de confirmation détaillé
+  const successDiv = document.getElementById('success-confirmation');
+  const messageSpan = document.getElementById('success-message');
+  
+  // Formater la date pour l'affichage
+  const dateParts = aleaData.date.split('-');
+  const dateFormatted = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+  
+  // Message personnalisé avec les détails
+  messageSpan.innerHTML = `
+    <div class="card border-0 bg-light mt-2">
+      <div class="card-body p-3">
+        <div class="row">
+          <div class="col-md-6">
+            <p class="mb-1"><strong>Opérateur:</strong> ${aleaData.operateur}</p>
+            <p class="mb-1"><strong>Équipe:</strong> ${aleaData.equipe || 'Non spécifiée'}</p>
+            <p class="mb-1"><strong>Poste:</strong> ${aleaData.poste}</p>
+          </div>
+          <div class="col-md-6">
+            <p class="mb-1"><strong>Date:</strong> ${dateFormatted}</p>
+            <p class="mb-1"><strong>Type d'aléa:</strong> ${aleaData.typeAlea}</p>
+            <p class="mb-1"><strong>Durée:</strong> ${aleaData.duree}h</p>
+          </div>
+        </div>
+        ${aleaData.commentaire ? `<p class="mt-2 mb-0"><strong>Commentaire:</strong> ${aleaData.commentaire}</p>` : ''}
+      </div>
+    </div>
+    <div class="text-center mt-3">
+      <span class="badge bg-success p-2">Enregistrement réussi dans la feuille de calcul</span>
+    </div>
+  `;
+  
+  // Jouer un son de notification (optionnel)
+  try {
+    const audio = new Audio('https://cdn.jsdelivr.net/gh/rafaelp/rphook/lib/media/status.mp3');
+    audio.volume = 0.5;
+    audio.play();
+  } catch (e) {
+    console.log('Son de notification non disponible');
+  }
+  
+  // Afficher le message de confirmation sans faire défiler la page
+  successDiv.classList.remove('d-none');
+  successDiv.classList.add('success-message');
+  
+  // Masquer après un délai
+  setTimeout(function() {
+    successDiv.classList.add('d-none');
+    successDiv.classList.remove('success-message');
+  }, 10000);
+}
+
+function showStatusMessage(message, type) {
+  const statusElement = document.getElementById('status-message');
+  statusElement.textContent = message;
+  statusElement.className = `alert alert-${type} mb-4`;
+  statusElement.style.display = 'block';
+  
+  // Faire disparaître le message après un délai (sauf pour les erreurs)
+  if (type !== 'danger') {
+    setTimeout(function() {
+      statusElement.style.display = 'none';
+    }, 5000);
+  }
+}
+
+function showDiscreteNotification(message, type) {
+  // Créer ou réutiliser un élément de notification flottant
+  let notifContainer = document.getElementById('discrete-notification');
+  
+  if (!notifContainer) {
+    notifContainer = document.createElement('div');
+    notifContainer.id = 'discrete-notification';
+    notifContainer.className = 'position-fixed top-0 end-0 p-3';
+    notifContainer.style.zIndex = '5';
+    document.body.appendChild(notifContainer);
+  }
+  
+  // Générer un ID unique pour cette notification
+  const notifId = 'toast-' + Date.now();
+  
+  // Créer le contenu de la notification
+  const toastHTML = `
+    <div id="${notifId}" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header ${type === 'info' ? 'bg-info' : type === 'warning' ? 'bg-warning' : type === 'danger' ? 'bg-danger' : 'bg-success'} ${type === 'warning' ? 'text-dark' : 'text-white'}">
+        <i class="fas ${type === 'info' ? 'fa-info-circle' : type === 'warning' ? 'fa-exclamation-triangle' : type === 'danger' ? 'fa-exclamation-circle' : 'fa-check-circle'} me-2"></i>
+        <strong class="me-auto">${type === 'info' ? 'Information' : type === 'warning' ? 'Attention' : type === 'danger' ? 'Erreur' : 'Succès'}</strong>
+        <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('${notifId}').remove()" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        ${message}
+      </div>
+    </div>
+  `;
+  
+  // Ajouter la notification au conteneur
+  const toastElement = document.createElement('div');
+  toastElement.innerHTML = toastHTML;
+  notifContainer.appendChild(toastElement.firstElementChild);
+  
+  // Supprimer automatiquement après un délai
+  setTimeout(() => {
+    const notification = document.getElementById(notifId);
+    if (notification) {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 500);
+    }
+  }, 4000);
+}
+
+function showLoader(show, message = "Traitement en cours...") {
+  const loader = document.getElementById('loader');
+  const loaderText = document.getElementById('loader-text');
+  
+  if (loader) {
+    loader.style.display = show ? 'flex' : 'none';
+    
+    // Si un message est spécifié, le mettre à jour
+    if (loaderText && message) {
+      loaderText.textContent = message;
+    }
+  }
+  
+  // Masquer/afficher les formulaires
+  document.querySelectorAll('#alea-form, #multi-alea-form, #selected-operators-container').forEach(form => {
+    if (form) form.style.display = show ? 'none' : 'block';
+  });
+}
+
+function formatDateForInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Test de connexion
+function testConnection() {
+  google.script.run
+    .withSuccessHandler(function(response) {
+      console.log("Test de connexion réussi:", response);
+    })
+    .withFailureHandler(function(error) {
+      showStatusMessage("Erreur de connexion au serveur: " + error, "danger");
+    })
+    .testConnection();
+}
+</script>
+
 </body>
 </html>

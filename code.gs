@@ -305,3 +305,78 @@ function getTypesAleas() {
     return { success: false, message: "Erreur: " + e.toString() };
   }
 }
+
+function getAllOperateurs() {
+  try {
+    var spreadsheet = SpreadsheetApp.openById('1Ni8E2HagtluqzpJLwUbBrgZdYtIuKud1jxtpK1StFS8');
+    var sheet = spreadsheet.getSheetByName('Effectif');
+    
+    if (!sheet) {
+      return { success: false, message: "Feuille 'Effectif' introuvable" };
+    }
+    
+    // Récupérer toutes les données
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    
+    // Trouver les index des colonnes importantes
+    var saIndex = -1, nomIndex = -1, equipeIndex = -1, posteIndex = -1;
+    
+    // Recherche case-insensitive des colonnes
+    for (var i = 0; i < headers.length; i++) {
+      var header = String(headers[i]).toLowerCase().trim();
+      if (header === "sa" || header === "numéro sa" || header === "numero sa") {
+        saIndex = i;
+      } else if (header === "nom" || header === "opérateur" || header === "operateur") {
+        nomIndex = i;
+      } else if (header === "equipe" || header === "équipe") {
+        equipeIndex = i;
+      } else if (header === "poste" || header === "poste habituel") {
+        posteIndex = i;
+      }
+    }
+    
+    if (saIndex === -1 || nomIndex === -1) {
+      return { 
+        success: false, 
+        message: "Colonnes requises (SA, Nom) non trouvées dans la feuille Effectif" 
+      };
+    }
+    
+    // Préparer la liste des opérateurs
+    var operateurs = [];
+    
+    for (var i = 1; i < data.length; i++) {
+      var row = data[i];
+      
+      // Vérifier que les cellules contiennent quelque chose
+      if (row[nomIndex] !== null && row[nomIndex] !== undefined && row[saIndex] !== null && row[saIndex] !== undefined) {
+        var nom = String(row[nomIndex]).trim();
+        var sa = String(row[saIndex]).trim();
+        
+        if (nom && sa) {
+          operateurs.push({
+            nom: nom,
+            sa: sa,
+            equipe: equipeIndex >= 0 ? (row[equipeIndex] || "") : "",
+            poste: posteIndex >= 0 ? (row[posteIndex] || "") : ""
+          });
+        }
+      }
+    }
+    
+    // Trier par ordre alphabétique du nom
+    operateurs.sort(function(a, b) {
+      return a.nom.localeCompare(b.nom);
+    });
+    
+    return {
+      success: true,
+      operateurs: operateurs
+    };
+    
+  } catch (e) {
+    Logger.log("ERREUR dans getAllOperateurs: " + e.toString());
+    return { success: false, message: "Erreur: " + e.toString() };
+  }
+}
